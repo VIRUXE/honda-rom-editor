@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <RootNamespace>HondaROMEditor</RootNamespace>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <StartupObject>Honda_ROM_Editor.Program</StartupObject>
+    <PlatformTarget>x64</PlatformTarget>
+    <Authors>Flávio Pereira aka VIRUXE</Authors>
+    <Title>Honda ROM Editor</Title>
+    <Description>An OBD1 Honda ECU Editor</Description>
+    <PackageProjectUrl>https://github.com/VIRUXE/honda-rom-editor/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/VIRUXE/honda-rom-editor/</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <AssemblyName>HondaROMEditor</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+</Project>
