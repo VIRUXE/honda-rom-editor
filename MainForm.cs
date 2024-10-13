@@ -46,5 +46,13 @@ namespace HondaROMEditor {
 
 			return release.TryGetProperty("tag_name", out JsonElement tagName) && tagName.GetString()! != Application.ProductVersion.Split('+')[0]; // We don't need the commit hash
 		}
+
+		private void AboutMenuItem_Click(object sender, EventArgs e) {
+			MessageBox.Show($"Honda ROM Editor\nVersion {Application.ProductVersion.Split('+')[0]}\n\n" + 
+			"Thank you to everyone at PGMFI.org for their hard work and dedication to the Honda community. Especially Blundar, Calvin Baank, a1k0n and John Cui.\n\n" +
+			"This software is provided as-is with no warranty.\n\n" +
+			"GitHub: VIRUXE/honda-rom-editor",
+			"About Honda ROM Editor", MessageBoxButtons.OK, MessageBoxIcon.None);
+		}
 	}
 }
