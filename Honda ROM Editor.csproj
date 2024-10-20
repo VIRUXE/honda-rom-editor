@@ -10,13 +10,15 @@
     <StartupObject>HondaROMEditor.Program</StartupObject>
     <PlatformTarget>x64</PlatformTarget>
     <Authors>Flávio Pereira aka VIRUXE</Authors>
-    <Title>Honda ROM Editor</Title>
+    <Title>$(AssemblyName)</Title>
     <Description>An OBD1 Honda ECU Editor</Description>
     <PackageProjectUrl>https://github.com/VIRUXE/honda-rom-editor/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/VIRUXE/honda-rom-editor/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyName>HondaROMEditor</AssemblyName>
+    <AssemblyName>Honda ROM Editor</AssemblyName>
     <ApplicationIcon>honda.ico</ApplicationIcon>
+    <Product>$(AssemblyName)</Product>
+    <PackageId>honda-rom-editor</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
