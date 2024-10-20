@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECU Map Colors</title>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            font-family     : "Segoe UI", sans-serif;
+            margin          : 0;
+            padding         : 20px;
+            overflow-x      : auto;
+            color           : white;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin         : 20px auto;
+        }
+        th, td {
+            border       : 1px solid #333;
+            text-align   : center;
+            font-size    : 12px;
+            font-weight  : normal;
+            padding      : 2px 4px;
+            width        : 50px;
+            height       : 20px;
+            overflow     : hidden;
+            text-overflow: ellipsis;
+            white-space  : nowrap;
+        }
+        th, .header-cell {
+            background-color: #2a2a2a;
+            font-weight     : bold;
+            color           : white;
+        }
+
+        #colorScheme {
+            margin          : 10px auto;
+            display         : block;
+            padding         : 5px;
+            background-color: #2a2a2a;
+            color           : white;
+            border          : 1px solid #333;
+        }
+
+        #brightnessCheck, label[for="brightnessCheck"] {
+            margin : 10px auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <select id="colorScheme">
+        <option value="bluePurpleRed">Blue-Purple-Red</option>
+        <option value="greenYellowRed">Green-Yellow-Red</option>
+        <option value="blueWhiteRed">Blue-White-Red</option>
+        <option value="purplePinkOrange">Purple-Pink-Orange</option>
+        <option value="cyanMagentaYellow">Cyan-Magenta-Yellow</option>
+        <option value="redOrangeYellow">Red-Orange-Yellow</option>
+        <option value="blueGreenYellow">Blue-Green-Yellow</option>
+        <option value="pinkPurpleBlue">Pink-Purple-Blue</option>
+        <option value="brownBeigeWhite">Brown-Beige-White</option>
+        <option value="blackGrayWhite">Black-Gray-White</option>
+        <option value="heatmap">Heatmap</option>
+    </select>
+
+    <label for="brightnessCheck" style="text-align: center;">Adjust text color based on brightness</label>
+    <input type="checkbox" id="brightnessCheck" checked>
+
+    <table id="ecuTable"></table>
+
+    <script>
+        const data = [ // Stock P30 ROM low cam fuel map
+            ["rpm/vac", "26.48\"", "21.35\"", "17.96\"", "14.55\"", "11.16\"", "7.75\"", "4.36\"", "2.65\"", "0.94\"", "0.3"],
+            [500, 10, 92, 150, 204, 255, 312, 368, 402, 439, 473],
+            [602, 10, 92, 150, 204, 255, 312, 368, 402, 439, 475],
+            [703, 12, 95, 153, 208, 258, 312, 370, 398, 446, 477],
+            [797, 12, 96, 153, 209, 258, 313, 370, 404, 448, 482],
+            [1000, 14, 103, 161, 214, 266, 320, 378, 412, 443, 473],
+            [1250, 17, 108, 169, 225, 281, 333, 390, 420, 459, 484],
+            [1500, 17, 113, 169, 228, 281, 336, 394, 424, 466, 497],
+            [1750, 17, 110, 168, 226, 282, 341, 400, 432, 464, 497],
+            [2000, 17, 113, 171, 230, 287, 347, 408, 438, 477, 502],
+            [2248, 17, 113, 171, 231, 288, 343, 404, 436, 468, 502],
+            [2500, 15, 110, 167, 226, 285, 341, 402, 434, 473, 506],
+            [3000, 20, 121, 186, 248, 309, 369, 430, 466, 504, 536],
+            [3188, 20, 120, 184, 249, 311, 371, 436, 468, 504, 533],
+            [3500, 21, 116, 180, 240, 302, 362, 424, 456, 504, 533],
+            [4000, 18, 113, 179, 240, 303, 368, 442, 474, 509, 529],
+            [4496, 21, 118, 181, 245, 309, 371, 436, 476, 506, 536],
+            [5000, 25, 129, 198, 264, 327, 396, 460, 498, 529, 554],
+            [6000, 27, 140, 208, 274, 351, 417, 482, 510, 549, 572],
+            [7000, 27, 140, 208, 274, 351, 417, 482, 510, 549, 572],
+            [7936, 27, 140, 208, 274, 351, 417, 482, 510, 549, 572]
+        ];
+
+        const colorSchemes = {
+            bluePurpleRed: {
+                startColor: [41, 121, 255],   // Cool blue
+                midColor  : [149, 0, 255],    // Purple
+                endColor  : [255, 36, 0],     // Warm red
+                textColor : 'white'
+            },
+            greenYellowRed: {
+                startColor: [0, 255, 0],     // Green
+                midColor  : [255, 255, 0],   // Yellow
+                endColor  : [255, 0, 0],     // Red
+                textColor : 'black'
+            },
+            blueWhiteRed: {
+                startColor: [0, 0, 255],       // Blue
+                midColor  : [255, 255, 255],   // White
+                endColor  : [255, 0, 0],       // Red
+                textColor : 'black'
+            },
+            purplePinkOrange: {
+                startColor: [128, 0, 128],     // Purple
+                midColor  : [255, 105, 180],   // Pink
+                endColor  : [255, 165, 0],     // Orange
+                textColor : 'black'
+            },
+            cyanMagentaYellow: {
+                startColor: [0, 255, 255],   // Cyan
+                midColor  : [255, 0, 255],   // Magenta
+                endColor  : [255, 255, 0],   // Yellow
+                textColor : 'black'
+            },
+            redOrangeYellow: {
+                startColor: [255, 255, 0],   // Yellow
+                midColor  : [255, 165, 0],   // Orange
+                endColor  : [255, 0, 0],     // Red
+                textColor : 'black'
+            },
+            blueGreenYellow: {
+                startColor: [255, 255, 0],   // Yellow
+                midColor  : [0, 255, 0],     // Green
+                endColor  : [0, 0, 255],     // Blue
+                textColor : 'black'
+            },
+            pinkPurpleBlue: {
+                startColor: [255, 105, 180],   // Pink
+                midColor  : [128, 0, 128],     // Purple
+                endColor  : [0, 0, 255],       // Blue
+                textColor : 'white'
+            },
+            brownBeigeWhite: {
+                startColor: [255, 255, 255],   // White
+                midColor  : [245, 245, 220],   // Beige
+                endColor  : [139, 69, 19],     // Brown
+                textColor : 'black'
+            },
+            blackGrayWhite: {
+                startColor: [255, 255, 255],   // White
+                midColor  : [128, 128, 128],   // Gray
+                endColor  : [0, 0, 0],         // Black
+                textColor : 'black'
+            },
+            heatmap: {
+                startColor: [0, 0, 255],     // Blue
+                midColor  : [255, 255, 0],   // Yellow
+                endColor  : [255, 0, 0],     // Red
+                textColor : 'black'
+            }
+        };
+
+        const interpolateColor = (color1, color2, factor) => color1.map((c, i) => Math.round(c + factor * (color2[i] - c)));
+
+        function getGradientColor(normalizedValue, scheme) {
+            const { startColor, midColor, endColor } = colorSchemes[scheme];
+
+            return normalizedValue < 0.5 
+            ? interpolateColor(startColor, midColor, normalizedValue * 2) 
+            : interpolateColor(midColor, endColor, (normalizedValue - 0.5) * 2);
+        }
+        
+        function updateTableColors(scheme) {
+            const values   = Array.from(document.querySelectorAll('td:not(.header-cell)')).map(cell => parseFloat(cell.textContent));
+            const minValue = Math.min(...values);
+            const maxValue = Math.max(...values);
+
+            document.querySelectorAll('td:not(.header-cell)').forEach(cell => {
+                const normalizedValue = (parseFloat(cell.textContent) - minValue) / (maxValue - minValue);
+                const [r, g, b]       = getGradientColor(normalizedValue, scheme);
+                const brightness      = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+                const textColor       = brightness < 0.5 ? 'white' : colorSchemes[scheme].textColor;
+
+                cell.style.backgroundColor = `rgb(${r},${g},${b})`;
+                cell.style.color           = document.getElementById('brightnessCheck').checked ? textColor : colorSchemes[scheme].textColor;
+            });
+        }
+
+        const table = document.getElementById('ecuTable');
+        data.forEach((row, rowIndex) => {
+            const tr = table.insertRow();
+
+            row.forEach((cell, colIndex) => {
+                const td = tr.insertCell();
+                td.textContent = cell;
+                if (rowIndex === 0 || colIndex === 0) td.className = 'header-cell';
+            });
+        });
+
+        const colorScheme = document.getElementById('colorScheme');
+        colorScheme.addEventListener('change', e => updateTableColors(e.target.value));
+
+        // Recalculate the map to adjust text color based on brightness
+        document.getElementById('brightnessCheck').addEventListener('change', () => updateTableColors(colorScheme.value));
+
+        updateTableColors('bluePurpleRed');
+    </script>
+</body>
+</html>
