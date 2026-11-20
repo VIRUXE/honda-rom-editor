@@ -2,11 +2,15 @@
 
 Every part of the interface is held to these rules, and a change that touches the interface is checked against the list at the end.
 
-The interface must be **accessible**, **modern** and **easy for first-time users** who are not technical, and it must **use what the platform offers** (.NET, WinForms, the newest C#) in place of hand-made substitutes.
+## Tuning comes first
+
+The program is a tuning tool, and tuning decides everything else on this page. What is built next is what a tuner needs next: reading and changing tables and settings, saving a ROM that runs, logging the engine, tuning from the log, working through an emulator. The window is laid out around that work, and nothing a tuner needs to do it is hidden or thinned out to make a page look simpler.
+
+The rest of this page is how that work is presented, not a line of work beside it. The interface must be **accessible**, **modern** and **easy for first-time users** who are not technical, and it must **use what the platform offers** (.NET, WinForms, the newest C#) in place of hand-made substitutes. Each tuning feature is built to these rules as it is made.
 
 ## Who it is for
 
-Someone with a file read from the chip of their car's engine computer. They may never have seen hexadecimal and may not know what a ROM, a checksum or a table is. They want to see what the file is, later change it, without breaking the car. People who know all this are served by the same window: the technical detail is one command away, never in the way.
+Someone tuning the engine computer of a Honda, from a file read from its chip. Many have done it for years with other programs and expect the tables, the names and the numbers they know. Others are at their first ROM: they may never have seen hexadecimal and may not know what a checksum or a table is. Both are served by the same window. It is made for the work of tuning, explains itself to someone new, and keeps the technical detail one command away.
 
 ## Wording
 
@@ -70,6 +74,7 @@ See the research note [What .NET 11, WinForms and C# 15 offer](https://github.co
 
 ## Checklist for a change to the interface
 
+- [ ] Does it serve the work of tuning, with everything a tuner needs for the task on the page?
 - [ ] Can it be done with the keyboard alone, and is the focus visible at each step?
 - [ ] Does every new control have a name a screen reader can read, and is every new piece of information in a control and not only painted?
 - [ ] Is every new string in the window's words, with technical detail in a technical section?
