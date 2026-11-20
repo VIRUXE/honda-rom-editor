@@ -1,0 +1,60 @@
+id = "mini"
+name = "Mini test ROM"
+platform = "obd0-66k"
+rom_size = 0x8000
+
+# Either fingerprint identifies the ROM: the identification word, or that word with the
+# low nibble of its second byte ignored plus a marker byte.
+[[fingerprint]]
+size = 0x8000
+bytes = [{ address = 0x23, value = [0x96, 0x15] }]
+
+[[fingerprint]]
+bytes = [
+    { address = 0x23, value = [0x96, 0x10], mask = [0xFF, 0xF0] },
+    { address = 0x40, value = [0xA5] },
+]
+
+[checksum]
+kind = "sum8"
+start = 0x0000
+end = 0x4000
+location = 0x3FFF
+
+[datalog]
+protocol = "stock"
+baud = 9600
+
+[[param]]
+category = "Fuel"
+name = "Fuel Map"
+address = 0x100
+kind = "table"
+rows = 2
+cols = 3
+unit = "raw"
+row_axis = { label = "RPM", address = 0x0F0, encoding = "delta-bytes" }
+col_axis = { label = "MAP", address = 0x110, encoding = "words" }
+multiplier = { address = 0x120, kind = "exponent" }
+
+[[param]]
+category = "Ignition"
+name = "Wide Map"
+address = 0x200
+kind = "table"
+rows = 2
+cols = 2
+cell = "u16le"
+scale = 0.5
+row_axis = { label = "RPM", values = [1000, 2000], encoding = "values" }
+col_axis = { label = "MAP", values = [30, 60] }
+
+[[param]]
+category = "Limits"
+name = "Rev Limiter"
+address = 0x300
+kind = "word"
+cell = "u16le"
+min = 3000
+max = 11000
+unit = "rpm"

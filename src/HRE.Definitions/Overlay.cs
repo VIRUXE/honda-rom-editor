@@ -107,7 +107,8 @@ public static class OverlayOps {
     private static IEnumerable<(string Symbol, ByteRange Span)> Parts(ParamDef d) {
         if (d.Symbol is { } symbol) yield return (symbol, new ByteRange(d.Offset, d.Offset + d.Length));
         if (d.Kind is not ParamKind.Table table) yield break;
-        if (d.RowAxis.Symbol is { } rows) yield return (rows, new ByteRange(d.RowAxis.Offset, d.RowAxis.Offset + 2 * table.Rows));
-        if (d.ColAxis.Symbol is { } cols) yield return (cols, new ByteRange(d.ColAxis.Offset, d.ColAxis.Offset + 2 * table.Cols));
+        if (d.RowAxis.Symbol is { } rows) yield return (rows, new ByteRange(d.RowAxis.Offset, d.RowAxis.Offset + d.RowAxis.StoredLength(table.Rows)));
+        if (d.ColAxis.Symbol is { } cols) yield return (cols, new ByteRange(d.ColAxis.Offset, d.ColAxis.Offset + d.ColAxis.StoredLength(table.Cols)));
+        if (d.Multiplier is { Symbol: { } multiplier } m) yield return (multiplier, new ByteRange(m.Offset, m.Offset + table.Cols));
     }
 }

@@ -33,7 +33,7 @@ public static class TableMath {
         int r0 = (int)MathF.Floor(r), c0 = (int)MathF.Floor(c);
         int r1 = Math.Min(r0 + 1, table.Rows - 1), c1 = Math.Min(c0 + 1, table.Cols - 1);
         float fr = r - r0, fc = c - c0;
-        float At(int row, int col) => ParamAccess.Cell(image, def, row, col);
+        float At(int row, int col) => ParamAccess.Cell(image, def, row, col) * ParamAccess.ColumnFactor(image, def, col);
         var top = At(r0, c0) + (At(r0, c1) - At(r0, c0)) * fc;
         var bottom = At(r1, c0) + (At(r1, c1) - At(r1, c0)) * fc;
         return def.Display(top + (bottom - top) * fr);

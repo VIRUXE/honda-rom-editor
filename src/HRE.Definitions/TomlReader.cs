@@ -49,6 +49,22 @@ internal static class TomlReader {
     public static long Integer(TomlTable table, string key, long min, long max, long fallback) =>
         table.TryGetValue(key, out var value) ? AsInteger(value, key, min, max) : fallback;
 
+    public static long? OptionalInteger(TomlTable table, string key, long min, long max) =>
+        table.TryGetValue(key, out var value) ? AsInteger(value, key, min, max) : null;
+
+    /// <summary>A sub-table (<c>[key]</c> or an inline table); null when the key is absent.</summary>
+    public static TomlTable? OptionalTable(TomlTable table, string key) {
+        if (!table.TryGetValue(key, out var value)) return null;
+        return value as TomlTable ?? throw new HreFormatException($"`{key}` must be a table");
+    }
+
+    /// <summary>An array of byte values (integers 0..255); null when the key is absent.</summary>
+    public static byte[]? OptionalBytes(TomlTable table, string key) {
+        if (!table.TryGetValue(key, out var value)) return null;
+        if (value is not TomlArray array) throw new HreFormatException($"`{key}` must be an array of bytes");
+        return [.. array.Select(item => (byte)AsInteger(item, key, 0, 255))];
+    }
+
     /// <summary>A float, also accepting an integer literal.</summary>
     public static float Number(TomlTable table, string key, float fallback) {
         if (!table.TryGetValue(key, out var value)) return fallback;

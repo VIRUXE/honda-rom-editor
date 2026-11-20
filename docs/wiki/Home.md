@@ -4,6 +4,7 @@ A ROM editor and datalogger for Honda OBD0 and OBD1 engine computers, written in
 
 - [[Architecture]]
 - [[ROM approach]] — source projects and definition packs
+- [[Definition packs]] — the pack file format
 - [[Datalog protocol]] — selectable per ROM; the HRE stream protocol
 - [[Hardware]] — ROM emulators and how they are supported
 - [[OBD0]]

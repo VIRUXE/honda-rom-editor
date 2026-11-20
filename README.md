@@ -88,7 +88,7 @@ no engine, bench harness or emulator needed.
 |:-:|---|---|
 | <img alt="Done" src="https://img.shields.io/badge/-done-3cbe50?style=flat-square"> | **M1** Core and formats | ROM image, checksum, parameter model, undo/redo, project file formats |
 | <img alt="Done" src="https://img.shields.io/badge/-done-3cbe50?style=flat-square"> | **M2** Build | Source project → ROM image through the assembler, overlay applied, checksum fixed |
-| <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M3** Definition packs | Open existing `.bin` files; verified patch recipes |
+| <img alt="In progress" src="https://img.shields.io/badge/-in%20progress-d29922?style=flat-square"> | **M3** Definition packs | Open existing `.bin` files; verified patch recipes. The pack format is in; recipes and the first packs are next |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M4** App shell | Black-themed window, table grid, 3D surface, undo/redo, save |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M5** Virtual ECU serial port | Emulated ECU serving its real serial routines over TCP |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M6** Legacy datalog drivers | eCtune-compatible, CROME QD2 / QD3-compatible |
@@ -129,6 +129,7 @@ outside this repository, are skipped when those are missing.
 |---|---|
 | [Architecture](https://github.com/VIRUXE/honda-rom-editor/wiki/Architecture) | Projects and conventions |
 | [ROM approach](https://github.com/VIRUXE/honda-rom-editor/wiki/ROM-approach) | Source projects and definition packs |
+| [Definition packs](https://github.com/VIRUXE/honda-rom-editor/wiki/Definition-packs) | The pack file format: fingerprints, checksum, parameters |
 | [Datalog protocol](https://github.com/VIRUXE/honda-rom-editor/wiki/Datalog-protocol) | Selectable protocols and the HRE stream |
 | [Hardware](https://github.com/VIRUXE/honda-rom-editor/wiki/Hardware) | Supported ROM emulators |
 | [OBD0](https://github.com/VIRUXE/honda-rom-editor/wiki/OBD0) | Which OBD0 ECUs, and how |
