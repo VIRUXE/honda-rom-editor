@@ -40,7 +40,7 @@ kind = "table"
 rows = 6
 cols = 12
 row_axis = { label = "RPM", address = 0x0F0, encoding = "delta-bytes" }
-col_axis = { label = "MAP", address = 0x0F6, encoding = "delta-bytes" }
+col_axis = { label = "MAP", address = 0x0E4, encoding = "delta-bytes" }
 multiplier = { address = 0x148, kind = "exponent" }
 
 [[param]]
@@ -57,16 +57,10 @@ unit = "rpm"
 id = "fast-serial"
 name = "Fast serial routine"
 doc = "Answers a memory address with the byte stored there."
-
-[[patch.step]]
-address = 0x0500
-old = [0x00, 0x00, 0x00]
-new = [0x03, 0x00, 0x7F]
-
-[[patch.step]]
-address = 0x7F00
-old = [0xFF, 0xFF, 0xFF, 0xFF]
-new = [0x21, 0x10, 0x03, 0xFF]
+steps = [
+    { address = 0x0500, old = [0x00, 0x00, 0x00], new = [0x03, 0x00, 0x7F] },
+    { address = 0x7F00, old = [0xFF, 0xFF, 0xFF, 0xFF], new = [0x21, 0x10, 0x03, 0xFF] },
+]
 ```
 
 ## Top-level keys
@@ -154,15 +148,29 @@ A pack may list `[[patch]]` entries: named changes to the ROM that can be applie
 | `id` | yes | Short stable identifier, unique within the pack |
 | `name` | yes | Name shown to the user |
 | `doc` | no | What the patch does |
-| `step` | yes | One or more steps: `[[patch.step]]` tables as in the example, or an inline list `step = [{ address = ..., old = [...], new = [...] }]` |
+| `steps` | yes | One or more steps, as an inline list: `steps = [{ address = ..., old = [...], new = [...] }]` |
 
-Each step:
+Each step has exactly these keys:
 
 | Key | Meaning |
 |---|---|
 | `address` | Absolute address of the first byte |
-| `old` | The bytes expected there before the patch |
+| `old` | The bytes expected there before the patch; at least one |
 | `new` | The bytes that replace them; as many as `old` |
+
+A long step can run over several lines, because its byte lists can:
+
+```toml
+steps = [
+    { address = 0x7F00, old = [
+        0xFF, 0xFF, 0xFF, 0xFF,
+    ], new = [
+        0x21, 0x10, 0x03, 0xFF,
+    ] },
+]
+```
+
+Only the inline list is read. `[[patch.steps]]` tables are refused, and so is any key in a step other than the three above: either way a file that looks complete could otherwise load with part of a patch missing or misread.
 
 ### Probing
 
@@ -176,8 +184,16 @@ Before anything is written the image is probed. A patch is in exactly one of thr
 
 - Applying a patch and then reverting it gives back the image byte for byte.
 - A byte that is the same in `old` and `new` is still compared. A step can repeat bytes unchanged, or change none at all, to pin down code the patch relies on.
-- Two patches that write the same bytes exclude each other: while one is applied the other is a conflict, until the first is reverted.
-- The checksum is corrected after a patch as after any other edit.
+- Patching never writes the checksum byte. Correcting the checksum is a separate step, the same one any other edit needs. For an image whose checksum was right, applying a patch, correcting, reverting and correcting again gives back every byte.
+
+### Patches that share bytes
+
+Two patches of a pack may cover the same bytes in two ways only:
+
+- **As alternatives.** Where they overlap, the `new` bytes of each differ from both the `old` and the `new` bytes of the other. While one is applied the other is then always a conflict: it can be neither applied on top nor reverted from underneath until the first is reverted.
+- **As shared pins.** Neither changes the shared bytes.
+
+Anything else is rejected when the pack is loaded: a patch that builds on another, one that pins or rewrites bytes another changes, one that repeats a step of another. In each of these, switching one patch could leave the other half in place. A patch that needs another is written as one patch.
 
 ### What a pack may not contain
 
@@ -185,12 +201,15 @@ The pack is rejected when a patch:
 
 - has steps that overlap, or a step that reaches past `rom_size`;
 - has a step covering the checksum's correction byte, which changes with every edit and so never holds an expected value (this does not apply with `kind = "none"`);
+- changes a bit that one of the pack's `bytes` fingerprints compares, because the pack would no longer recognise the ROM once it is patched (pinning such a byte is fine, and so is changing bits a `mask` leaves out);
 - changes nothing, because `new` equals `old` in every step;
-- repeats the `id` of another patch in the pack.
+- repeats the `id` of another patch in the pack, or shares bytes with one in a way the section above does not allow.
+
+Keep steps clear of the bytes a parameter covers as well: once that table is edited, the patch no longer finds the bytes it expects and becomes a conflict.
 
 ## Validation
 
-A file that cannot be understood (bad syntax, a missing or contradictory key, an unknown name) is rejected with the reason; a reason inside a patch names the patch. A parameter that cannot exist in the ROM, such as a span reaching past `rom_size`, is reported and left out; the rest of the pack still loads.
+A file that cannot be understood (bad syntax, a missing or contradictory key, an unknown name, a key or table given twice) is rejected with the reason; a reason inside a patch names the patch and the step. A parameter that cannot exist in the ROM, such as a span reaching past `rom_size`, is reported and left out; the rest of the pack still loads.
 
 ## Source projects
 

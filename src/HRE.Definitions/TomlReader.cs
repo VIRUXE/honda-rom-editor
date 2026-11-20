@@ -1,6 +1,7 @@
 using System.Text;
 using Tomlyn;
 using Tomlyn.Model;
+using Tomlyn.Parsing;
 
 namespace HRE.Definitions;
 
@@ -11,7 +12,11 @@ public sealed class HreFormatException(string message, Exception? inner = null) 
 internal static class TomlReader {
     public static TomlTable ParseRoot(string text) {
         try {
-            return TomlSerializer.Deserialize<TomlTable>(text, (TomlSerializerOptions?)null) ?? new TomlTable();
+            var root = TomlSerializer.Deserialize<TomlTable>(text, (TomlSerializerOptions?)null) ?? new TomlTable();
+            // The reader above keeps the last of two definitions of a key or a table without a
+            // word; the validating parser refuses them.
+            SyntaxParser.ParseStrict(text, null, validate: true);
+            return root;
         } catch (TomlException e) {
             throw new HreFormatException(e.Message, e);
         }

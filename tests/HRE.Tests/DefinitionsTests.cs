@@ -143,6 +143,15 @@ public class DefinitionsTests {
         Assert.Throws<HreFormatException>(() => ParamDefinitions.Parse("[[param]]\ncategory='a'\nname='w'\nkind='word'\n"));
     }
 
+    /// <summary>A key or a table may be given once. The second of two is an error, not the value quietly used.</summary>
+    [Theory]
+    [InlineData("platform = 'obd0-66k'\nplatform = 'obd1-66207'\n")]
+    [InlineData("[[param]]\ncategory='a'\nname='w'\nsymbol='w'\nkind='word'\nkind='table'\n")]
+    [InlineData("[[param]]\ncategory='a'\nname='w'\nsymbol='w'\nkind='word'\nrow_axis={label='r',label='s',symbol='x'}\n")]
+    public void AKeyDefinedTwiceIsRejected(string text) {
+        Assert.Contains("cannot be redefined", Assert.Throws<HreFormatException>(() => ParamDefinitions.Parse(text)).Message);
+    }
+
     [Fact]
     public void SymbolMapReadsTheAssemblerJson() {
         const string json = """
