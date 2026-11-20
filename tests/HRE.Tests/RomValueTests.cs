@@ -140,10 +140,10 @@ public class RomValueTests {
         cols = 2
         row_axis = { label = 'r', values = [1, 2] }
         col_axis = { label = 'c', address = 0x200, encoding = 'bytes' }
-        """.Replace("address = 0x100", change.StartsWith("address") ? change : "address = 0x100")
-           .Replace("rows = 2", change.StartsWith("rows") ? change : "rows = 2")
-           .Replace("col_axis = { label = 'c', address = 0x200, encoding = 'bytes' }", change.StartsWith("col_axis") ? change : "col_axis = { label = 'c', address = 0x200, encoding = 'bytes' }")
-        + (change.StartsWith("multiplier") ? "\n" + change + "\n" : "\n");
+        """.Replace("address = 0x100", change.StartsWith("address", StringComparison.Ordinal) ? change : "address = 0x100")
+           .Replace("rows = 2", change.StartsWith("rows", StringComparison.Ordinal) ? change : "rows = 2")
+           .Replace("col_axis = { label = 'c', address = 0x200, encoding = 'bytes' }", change.StartsWith("col_axis", StringComparison.Ordinal) ? change : "col_axis = { label = 'c', address = 0x200, encoding = 'bytes' }")
+        + (change.StartsWith("multiplier", StringComparison.Ordinal) ? "\n" + change + "\n" : "\n");
 
     [Theory]
     [InlineData("address = { cell = 'u8' }", "`address` must be a number or { at = ... }")]

@@ -125,7 +125,7 @@ public class ShippedPackTests {
         Assert.Equal(["ectune-273", "uberdata-p72"], packs.Where(p => p.Checksum.Kind == ChecksumKind.None).Select(p => p.Id).Order(StringComparer.Ordinal));
         Assert.All(packs.Where(p => p.Checksum.Kind == ChecksumKind.Sum8), p => {
             Assert.Equal((0, 0x8000), (p.Checksum.Start, p.Checksum.End));
-            Assert.Contains(p.Checksum.Location, new[] { 0x7FFF, 0x003B });
+            Assert.True(p.Checksum.Location is 0x7FFF or 0x003B);
         });
         // Only the firmware whose serial routine is part of what the pack recognises names a protocol.
         Assert.Equal(new DatalogSpec("ectune", null), Pack("ectune-273").Datalog);

@@ -1,43 +1,92 @@
 # Application
 
-The editor is one window: a menu bar, the parameter tree on the left, the detail view on the right and a status bar. It has one theme, black, and no setting to change it.
+The editor is one window: a menu bar, a list of what the open ROM holds, a page that describes what is selected, and a status bar. It is built to the [[Design principles]]: usable with the keyboard alone and with a screen reader, in plain words, with the technical detail one command away.
 
-![The main window with a fuel map selected](https://raw.githubusercontent.com/VIRUXE/honda-rom-editor/main/docs/assets/shell.png)
+![The main window with a fuel map selected and the technical details shown](https://raw.githubusercontent.com/VIRUXE/honda-rom-editor/main/docs/assets/shell.png)
 
-Run it with `dotnet run --project src/HRE.App`, or start `HondaRomEditor.exe`. A ROM image given on the command line is opened.
+Run it with `dotnet run --project src/HRE.App`, or start `HondaRomEditor.exe`. A ROM file given on the command line is opened.
 
-## Opening a ROM
+> Early version. It opens ROM files for reading. It cannot change or save them yet.
 
-**File > Open ROM** (Ctrl+O) reads a `.bin` file and looks for the [definition pack](Definition-packs) whose fingerprint matches it. The packs are the `*.pack.toml` files in the `packs` folder next to the program; the start page lists the ones that were loaded and reports any that could not be read.
+## Starting
 
-- A recognised ROM fills the tree with the parameters its pack finds in it.
-- A ROM no pack recognises still opens: the window shows its size and SHA-256 and says that nothing describes its tables.
-- A file that cannot be read is reported in the detail view; the ROM that was open stays open.
+![The start page: a button to open a file, the note about this early version, what a ROM is, which ROMs can be opened](https://raw.githubusercontent.com/VIRUXE/honda-rom-editor/main/docs/assets/start.png)
 
-At this stage a ROM is opened for reading. The table grid, editing and saving are the next steps of the same milestone.
+With no file open the page has the whole window. It offers, top to bottom: the button **Open a file...**, which has the keyboard focus; the files opened lately; what this version cannot do yet; what a ROM is; and the kinds of ROM this version can open.
 
-## Parameter tree
+## Opening a file
 
-The ROM is the root; under it the categories, in the order the pack lists them, and under each its parameters. What is selected decides what the detail view shows.
+Three ways lead to the same thing: **File > Open...** (Ctrl+O) or the button on the start page; dropping a file anywhere on the window; **File > Recent files** or the list on the start page.
 
-| Selected | Detail view |
+The program finds out by itself what kind of ROM the file is (see [[Supported ROMs]]). It is never asked of the user.
+
+A file that is not opened leaves the window as it was and is explained above the page, with a button for the way on:
+
+| What is wrong | What the window says |
 |---|---|
-| The ROM | File, size and SHA-256; the pack that recognised it, the platform, whether the checksum is correct and what it covers, the datalog protocol; its parameters by category; the state of each patch the pack knows (applied, not applied, conflict); parameters of the pack that were left out, and why |
-| A category | Its parameters and what kind each is |
-| A table | Rows and columns, address range, cell width, unit and scaling, column multipliers, the VTEC state it is read in, the range of its values; for each axis its label, number of breakpoints, how and where it is stored, and its range |
-| A value | Address, byte order, unit and scaling, the value as shown and as stored, the range it may take |
+| The file is gone | "... is no longer there. It may have been moved, renamed or deleted." It is also taken off the recent files |
+| It is a folder | "... is a folder, not a file. Choose the ROM file inside it." |
+| Another program holds it | "Another program is using ... Close it there, then try again." |
+| Windows refuses | "Windows did not let this program read ..." |
+| It is empty | "... is empty. The copy, the download or the read from the chip did not finish." |
+| It is smaller than a ROM | "... is too small to be a ROM", with both sizes |
+| It is far larger than a ROM | "... is too large to be a ROM". Such a file is not read at all |
+| The right size, but no known ROM | "This version does not know the ROM in ...", with a link to the list of ROMs that open. The file's SHA-256 is in the technical details, for a report |
 
-**View > Expand all** and **Collapse all** open and close the categories.
+Opening never changes the file.
+
+## The list
+
+**Overview** comes first; under it the groups (Fuel, Ignition) with their tables and settings, in the order the description of the ROM gives them. The groups are always open. Pointing at an entry shows what it is.
+
+| Selected | The page shows |
+|---|---|
+| Overview | What kind of ROM the file was recognised as; whether its checksum is correct, with what a checksum is; its size; what it holds, group by group; its add-ons and whether each is on |
+| A group | Its tables and settings, each with its description |
+| A table | What the table is, in a sentence; what its rows and columns stand for, how many steps each has and from where to where they run; the range of its values; whether the engine computer uses it with VTEC on or off |
+| A setting | Its value with its unit, and from where to where it can be set |
+
+## Technical details
+
+**View > Technical details** (Ctrl+T), or the button at the foot of a page, shows on every page what only matters to someone working on the bytes: the full path, the SHA-256, the identifier of the ROM's description, the platform, the checksum rule, addresses, cell widths, scaling and how the steps of rows and columns are stored. The choice is remembered.
+
+Every value on a page is a field that can be reached with Tab, selected and copied.
+
+## Text size
+
+**View > Larger text** (Ctrl++), **Smaller text** (Ctrl+-) and **Normal text size** (Ctrl+0) set the size of all text, from the normal size up to twice that. The list widens with it and pages grow taller. The choice is remembered.
+
+## Keyboard
+
+| Key | Does |
+|---|---|
+| Alt, then the underlined letter | Opens a menu; every command has a letter |
+| Ctrl+O, Ctrl+W | Open a file, close it |
+| F6, Shift+F6 | Moves between the list and the page |
+| Tab, Shift+Tab | Moves through the fields and buttons of the page, and to the divider, which the arrow keys move |
+| Page Up, Page Down, Ctrl+Home, Ctrl+End | Scroll the page |
+| Ctrl+T | Technical details |
+| Ctrl++, Ctrl+-, Ctrl+0 | Text size |
+| F1 | Opens this page |
+
+While a command is highlighted in a menu, the status bar says what it does.
 
 ## Status bar
 
 | Field | Meaning |
 |---|---|
-| Path | The file that is open; with no ROM open, how many definition packs were loaded |
-| ROM | The name of the pack that recognised the ROM, or "Not recognised" |
-| Parameters | How many parameters the pack finds in this image |
-| Checksum | "Checksum correct" or "Checksum wrong" by the pack's rule; "No checksum" for ROMs that do not check themselves; "Checksum unknown" when no pack says where it is |
+| File | The name of the open file; the full path when pointed at. "No file open" otherwise |
+| Kind of ROM | What the file was recognised as |
+| Checksum | "Checksum correct", "Checksum wrong" or "No checksum" (some kinds of ROM have none), with a symbol and a colour that say the same |
 
-## Theme
+## What is remembered
 
-True black background, light text, one teal accent. All colours come from one palette, and a unit test holds them to WCAG contrast ratios. What WinForms draws by itself in its dark colour mode and what the editor draws instead is written down in the research note [The black theme](https://github.com/VIRUXE/honda-rom-editor/blob/main/docs/research/Dark-theme.md).
+The place and size of the window, the width of the list, the text size, whether technical details are shown, and the eight files opened last. They are kept in `%AppData%\HondaRomEditor\settings.json`; deleting the file brings the defaults back. A place that is no longer on any screen is not restored.
+
+## Windows contrast themes
+
+When a Windows contrast theme is on, the window takes all its colours from it. Otherwise it has one look, black, and no setting to change it.
+
+## Help menu
+
+**Getting started** (F1) opens this page, **Which ROMs can be opened** opens [[Supported ROMs]], **Report a problem** opens the issue list. **About** shows the version and copies the versions of the program, .NET and Windows for a report.

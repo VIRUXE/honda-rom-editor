@@ -69,6 +69,7 @@ steps = [
 |---|---|---|---|
 | `id` | yes | | Short stable identifier, unique among packs |
 | `name` | yes | | Name shown to the user |
+| `doc` | no | `""` | What a newcomer should know about this kind of ROM, in a sentence or two; shown under the name |
 | `platform` | no | `obd1-66207` | `obd1-66207`, `obd0-66k` or `obd0-8051` |
 | `rom_size` | no | `0x8000` | Size of the ROM the addresses refer to |
 
@@ -109,7 +110,8 @@ Each `[[param]]` is a table or a 16-bit word at an `address`.
 
 | Key | Applies to | Default | Meaning |
 |---|---|---|---|
-| `category`, `name` | all | required | Where the parameter appears in the tree |
+| `category`, `name` | all | required | Where the parameter appears in the list |
+| `doc` | all | `""` | What the parameter is, in plain words for someone who has not met it: shown at the top of its page and when pointing at it. Every parameter of a shipped pack has one |
 | `address` | all | required | Address of the data: a number, or where the ROM keeps it (see below) |
 | `kind` | all | required | `table` or `word` |
 | `rows`, `cols` | table | required | At least 2 x 2; cells are stored row by row. Each is a number, or where the ROM keeps it |

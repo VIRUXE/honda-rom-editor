@@ -122,6 +122,9 @@ public sealed record ParamDef {
     public required string Category { get; init; }
     public required string Name { get; init; }
 
+    /// <summary>What the parameter is, in words for someone who has not met it before. Empty when the definition gives none.</summary>
+    public string Doc { get; init; } = "";
+
     /// <summary>Symbol the offset was resolved from, when the definition came from a project.</summary>
     public string? Symbol { get; init; }
 

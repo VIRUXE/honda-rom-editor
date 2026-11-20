@@ -32,7 +32,7 @@ public class PackCorpusTests {
     /// <summary>Path relative to the corpus, with forward slashes, and the pack expected for it (null for none).</summary>
     private static IReadOnlyList<(string Path, string? Pack)> Expected() => [
         .. File.ReadLines(Path.Combine(AppContext.BaseDirectory, "fixtures", "corpus", "expected-packs.tsv"))
-            .Where(line => line.Length > 0 && !line.StartsWith('#') && !line.StartsWith("pack\t"))
+            .Where(line => line.Length > 0 && !line.StartsWith('#') && !line.StartsWith("pack\t", StringComparison.Ordinal))
             .Select(line => line.Split('\t'))
             .Select(fields => (fields[1], fields[0] == "-" ? null : fields[0])),
     ];
@@ -262,7 +262,7 @@ public class PackCorpusTests {
     public void TheP30PackAgreesWithTheP28SourceProjectOnWhereTheMapsAre() {
         var aliases = File.ReadAllLines(Path.Combine(Workspace.P28Project, "aliases.inc"))
             .Select(line => line.Split(';')[0].Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
-            .Where(words => words is [_, "EQU", var target] && target.StartsWith("tbl_"))
+            .Where(words => words is [_, "EQU", var target] && target.StartsWith("tbl_", StringComparison.Ordinal))
             .ToDictionary(words => words[0], words => Convert.ToInt32(words[2][4..], 16));
         var defs = Defs("obd1-p30", RomImage.Load(Workspace.P28Stock));
         Assert.Equal([aliases["fuel_low_cam"], aliases["fuel_high_cam"], aliases["ign_low_cam"], aliases["ign_high_cam"]], defs.Select(d => d.Offset));

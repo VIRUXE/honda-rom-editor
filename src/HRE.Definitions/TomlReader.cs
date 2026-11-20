@@ -109,7 +109,7 @@ internal static class TomlReader {
                 case '\r': sb.Append("\\r"); break;
                 case '\t': sb.Append("\\t"); break;
                 default:
-                    if (ch < 0x20 || ch == 0x7F) sb.Append("\\u").Append(((int)ch).ToString("X4"));
+                    if (ch < 0x20 || ch == 0x7F) sb.Append("\\u").Append(((int)ch).ToString("X4", System.Globalization.CultureInfo.InvariantCulture));
                     else sb.Append(ch);
                     break;
             }

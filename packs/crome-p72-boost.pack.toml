@@ -65,6 +65,7 @@ location = 0x7FFF
 [[param]]
 category = "Fuel"
 name = "Fuel Map (Low Cam)"
+doc = "How much fuel the engine gets at each engine speed (rows) and engine load (columns) while VTEC is off. A bigger number means more fuel."
 address = { at = 0x128B }
 kind = "table"
 rows = 20
@@ -78,6 +79,7 @@ multiplier = { kind = "linear" }
 [[param]]
 category = "Fuel"
 name = "Fuel Map (High Cam)"
+doc = "How much fuel the engine gets at each engine speed (rows) and engine load (columns) while VTEC is on. A bigger number means more fuel."
 address = { at = 0x1277 }
 kind = "table"
 rows = 15
@@ -91,6 +93,7 @@ multiplier = { kind = "linear" }
 [[param]]
 category = "Ignition"
 name = "Ignition Map (Low Cam)"
+doc = "When the spark fires at each engine speed (rows) and engine load (columns) while VTEC is off, in degrees before the piston reaches the top. A bigger number means an earlier spark."
 address = { at = 0x64DF }
 kind = "table"
 rows = 20
@@ -105,6 +108,7 @@ col_axis = { label = "MAP kPa", address = { at = 0x0AA3 }, encoding = "bytes", e
 [[param]]
 category = "Ignition"
 name = "Ignition Map (High Cam)"
+doc = "When the spark fires at each engine speed (rows) and engine load (columns) while VTEC is on, in degrees before the piston reaches the top. A bigger number means an earlier spark."
 address = { at = 0x64E9 }
 kind = "table"
 rows = 15

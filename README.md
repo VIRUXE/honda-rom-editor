@@ -24,11 +24,11 @@
 
 > [!WARNING]
 > **Early development.** The core, the file formats, the build pipeline and the definition packs
-> work, and the application window opens ROMs for reading; it cannot edit or save yet. Do not flash
+> work, and the application opens ROMs for reading; it cannot edit or save yet. Do not flash
 > anything produced by this code into a car.
 
 <p align="center">
-  <img src="docs/assets/shell.png" alt="The main window: parameter tree on the left, the selected fuel map described on the right" width="90%">
+  <img src="docs/assets/shell.png" alt="The main window: the list of tables on the left; on the right the selected fuel map, described in plain words, with its technical details under them" width="90%">
 </p>
 
 ---
@@ -73,6 +73,22 @@ reading lands on the cell that actually produced it.
 <tr>
 <td width="50%" valign="top">
 
+### Made for first-time users
+Plain words first, the bytes one key away. Every table says what it is, every problem says what
+to do next, and the next step is always a button on the screen.
+
+</td>
+<td width="50%" valign="top">
+
+### Accessible
+Everything works from the keyboard and reads in a screen reader. Text enlarges to twice its
+size, contrast is held by a test, and Windows contrast themes are respected.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
 ### Live tuning hardware
 Moates Ostrich, One ROM and CobraRTP emulators behind one device layer, recognised by how they
 answer rather than by COM port number.
@@ -95,7 +111,7 @@ no engine, bench harness or emulator needed.
 | <img alt="Done" src="https://img.shields.io/badge/-done-3cbe50?style=flat-square"> | **M1** Core and formats | ROM image, checksum, parameter model, undo/redo, project file formats |
 | <img alt="Done" src="https://img.shields.io/badge/-done-3cbe50?style=flat-square"> | **M2** Build | Source project → ROM image through the assembler, overlay applied, checksum fixed |
 | <img alt="In progress" src="https://img.shields.io/badge/-in%20progress-d29922?style=flat-square"> | **M3** Definition packs | Open existing `.bin` files; verified patch recipes. The pack format, patch recipes and packs for the factory P28, P30 and P72 firmware, ROMs with CROME's boost add-ons, Uberdata's boost bases, the CROME Gold base and eCtune's base are in; pressure units on the MAP axis of the last two are next |
-| <img alt="In progress" src="https://img.shields.io/badge/-in%20progress-d29922?style=flat-square"> | **M4** App shell | Black-themed window, table grid, 3D surface, undo/redo, save. The window, its menus, the parameter tree and the status bar are in; the table grid is next |
+| <img alt="In progress" src="https://img.shields.io/badge/-in%20progress-d29922?style=flat-square"> | **M4** App shell | Black-themed window, table grid, 3D surface, undo/redo, save. The window is in, built to the design principles: plain-language pages, keyboard and screen reader use, text size, recent files, drag and drop; the table grid is next |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M5** Virtual ECU serial port | Emulated ECU serving its real serial routines over TCP |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M6** Legacy datalog drivers | eCtune-compatible, CROME QD2 / QD3-compatible |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M7** Selectable ROM protocols | Choose the protocol a ROM speaks; the HRE stream protocol |
@@ -128,7 +144,7 @@ outside this repository, are skipped when those are missing.
 | [`HRE.Core`](src/HRE.Core) | Immutable ROM image, checksum, parameter model, table math, undo/redo document |
 | [`HRE.Definitions`](src/HRE.Definitions) | Project manifest, parameter definitions, feature flags, calibration overlay, symbol map; definition packs and patch recipes |
 | [`HRE.Build`](src/HRE.Build) | Runs the assembler and turns a source project into a ROM image |
-| [`HRE.App`](src/HRE.App) | The application: main window, parameter tree, detail view, black theme |
+| [`HRE.App`](src/HRE.App) | The application: main window, pages in plain words built from standard controls, settings, black theme |
 | [`packs`](packs) | Definition packs for the common OBD1 ROMs |
 | [`HRE.Tests`](tests/HRE.Tests) | Unit, build and workspace tests |
 | [`tools`](tools) | Corpus survey scripts; a tool that takes the pictures of the window |
@@ -137,7 +153,8 @@ outside this repository, are skipped when those are missing.
 
 | | |
 |---|---|
-| [Application](https://github.com/VIRUXE/honda-rom-editor/wiki/Application) | The window: menus, parameter tree, detail view, status bar |
+| [Application](https://github.com/VIRUXE/honda-rom-editor/wiki/Application) | The window, and how to use it |
+| [Design principles](https://github.com/VIRUXE/honda-rom-editor/wiki/Design-principles) | The rules every part of the interface is held to |
 | [Architecture](https://github.com/VIRUXE/honda-rom-editor/wiki/Architecture) | Projects and conventions |
 | [ROM approach](https://github.com/VIRUXE/honda-rom-editor/wiki/ROM-approach) | Source projects and definition packs |
 | [Definition packs](https://github.com/VIRUXE/honda-rom-editor/wiki/Definition-packs) | The pack file format: fingerprints, checksum, parameters, patches |
@@ -147,7 +164,7 @@ outside this repository, are skipped when those are missing.
 | [OBD0](https://github.com/VIRUXE/honda-rom-editor/wiki/OBD0) | Which OBD0 ECUs, and how |
 | [Feature bundle](https://github.com/VIRUXE/honda-rom-editor/wiki/Feature-bundle) | Every planned editor and firmware feature |
 | [Testing without hardware](https://github.com/VIRUXE/honda-rom-editor/wiki/Testing-without-hardware) | How each area is verified |
-| [Research notes](docs/research/README.md) | How we know: the ROM corpus, the firmware types, what tuning programs leave in a ROM, what the black theme takes |
+| [Research notes](docs/research/README.md) | How we know: the ROM corpus, the firmware types, what tuning programs leave in a ROM, what the black theme takes, what the platform offers |
 
 ## Licence
 

@@ -1,38 +1,75 @@
-using System.Runtime.InteropServices;
-
 namespace HRE.App;
 
-/// <summary>The one theme of the application: true black, light text, a teal accent.</summary>
-public static partial class DarkTheme {
-    public static Color Background { get; } = Color.Black;
+/// <summary>
+/// The one look of the application: true black, light text, a teal accent. When the user has
+/// turned on a Windows contrast theme, every colour comes from that theme instead: the system's
+/// accessibility setting wins over the application's look.
+/// </summary>
+public static class DarkTheme {
+    private static readonly Lazy<Icon> LazyIcon = new(() => {
+        using var stream = typeof(DarkTheme).Assembly.GetManifestResourceStream("HRE.App.app.ico")!;
+        return new Icon(stream);
+    });
 
-    /// <summary>Menus, the status bar and other surfaces that sit on the background.</summary>
-    public static Color Surface { get; } = Color.FromArgb(0x0C, 0x0C, 0x0C);
+    /// <summary>Whether a Windows contrast theme is on.</summary>
+    public static bool HighContrast => SystemInformation.HighContrast;
 
-    /// <summary>What the pointer is over.</summary>
-    public static Color Hover { get; } = Color.FromArgb(0x1E, 0x1E, 0x1E);
+    public static Color Background => HighContrast ? SystemColors.Window : Color.Black;
 
-    public static Color Border { get; } = Color.FromArgb(0x2A, 0x2A, 0x2A);
-    public static Color Text { get; } = Color.FromArgb(0xE6, 0xE6, 0xE6);
-    public static Color TextDim { get; } = Color.FromArgb(0x9A, 0xA0, 0xA6);
-    public static Color TextDisabled { get; } = Color.FromArgb(0x6E, 0x6E, 0x6E);
-    public static Color Accent { get; } = Color.FromArgb(0x00, 0x96, 0xAA);
+    /// <summary>The menu bar and the status bar.</summary>
+    public static Color Surface => HighContrast ? SystemColors.Control : Color.FromArgb(0x14, 0x14, 0x14);
 
-    /// <summary>The selected item: the accent, darkened so light text stays readable on it.</summary>
-    public static Color Selection { get; } = Color.FromArgb(0x00, 0x4B, 0x55);
+    /// <summary>Notices and other blocks that stand out from the page.</summary>
+    public static Color Card => HighContrast ? SystemColors.Window : Color.FromArgb(0x14, 0x14, 0x14);
 
-    public static Color Good { get; } = Color.FromArgb(0x3C, 0xBE, 0x50);
-    public static Color Warning { get; } = Color.FromArgb(0xF0, 0xC8, 0x28);
-    public static Color Bad { get; } = Color.FromArgb(0xEB, 0x3C, 0x2D);
+    /// <summary>Lines that only divide.</summary>
+    public static Color Border => HighContrast ? SystemColors.WindowText : Color.FromArgb(0x2A, 0x2A, 0x2A);
 
-    public static ToolStripRenderer CreateRenderer() => new Renderer();
+    /// <summary>Lines that show where a control is or can be grabbed.</summary>
+    public static Color ControlBorder => HighContrast ? SystemColors.WindowText : Color.FromArgb(0x6E, 0x6E, 0x6E);
 
-    /// <summary>Black title bar and window border, where Windows lets an application choose them (Windows 11).</summary>
+    public static Color Text => HighContrast ? SystemColors.WindowText : Color.FromArgb(0xE6, 0xE6, 0xE6);
+    public static Color TextDim => HighContrast ? SystemColors.WindowText : Color.FromArgb(0x9A, 0xA0, 0xA6);
+    public static Color Accent => HighContrast ? SystemColors.HotTrack : Color.FromArgb(0x00, 0x96, 0xAA);
+
+    /// <summary>The fill of the selected item, and of the menu item the pointer or the keyboard is on.</summary>
+    public static Color Selection => HighContrast ? SystemColors.Highlight : Color.FromArgb(0x00, 0x4B, 0x55);
+
+    public static Color SelectionText => HighContrast ? SystemColors.HighlightText : Color.FromArgb(0xFF, 0xFF, 0xFF);
+
+    public static Color Good => HighContrast ? SystemColors.WindowText : Color.FromArgb(0x3C, 0xBE, 0x50);
+    public static Color Warning => HighContrast ? SystemColors.WindowText : Color.FromArgb(0xF0, 0xC8, 0x28);
+    public static Color Bad => HighContrast ? SystemColors.WindowText : Color.FromArgb(0xEB, 0x3C, 0x2D);
+
+    public static Icon AppIcon => LazyIcon.Value;
+
+    public static Color SeverityColor(Severity severity) => severity switch {
+        Severity.Info => Accent,
+        Severity.Good => Good,
+        Severity.Warning => Warning,
+        Severity.Problem => Bad,
+        _ => throw new ArgumentOutOfRangeException(nameof(severity)),
+    };
+
+    /// <summary>The renderer of menus and the status bar. Under a contrast theme WinForms' own renderer knows best.</summary>
+    public static ToolStripRenderer CreateRenderer() => HighContrast ? new ToolStripProfessionalRenderer() : new Renderer();
+
+    /// <summary>Icon, colours and title bar of a window. Call again when the contrast theme changes.</summary>
     public static void ApplyToWindow(Form form) {
-        SetWindowColor(form.Handle, DwmCaptionColor, Background);
-        SetWindowColor(form.Handle, DwmBorderColor, Border);
-        SetWindowColor(form.Handle, DwmTextColor, Text);
+        form.Icon = AppIcon;
+        form.BackColor = Background;
+        form.ForeColor = Text;
+        // Windows 11 lets a window choose these; under a contrast theme they are the system's.
+        form.FormCaptionBackColor = HighContrast ? Color.Empty : Background;
+        form.FormCaptionTextColor = HighContrast ? Color.Empty : Text;
+        form.FormBorderColor = HighContrast ? Color.Empty : Border;
     }
+
+    /// <summary>The body font of pages and lists: larger than the system font of menus, and enlarged by the user's text size.</summary>
+    public static Font BodyFont(Font system, double zoom) => new(system.FontFamily, (float)(system.SizeInPoints * 10.5 / 9.0 * zoom));
+
+    /// <summary>The font of menus and the status bar at the user's text size.</summary>
+    public static Font BarFont(Font system, double zoom) => new(system.FontFamily, (float)(system.SizeInPoints * zoom));
 
     /// <summary>How readable one colour is on another: the WCAG contrast ratio, from 1 (none) to 21.</summary>
     public static double Contrast(Color a, Color b) {
@@ -48,27 +85,15 @@ public static partial class DarkTheme {
         return 0.2126 * Linear(c.R) + 0.7152 * Linear(c.G) + 0.0722 * Linear(c.B);
     }
 
-    private const int DwmBorderColor = 34;
-    private const int DwmCaptionColor = 35;
-    private const int DwmTextColor = 36;
-
-    private static void SetWindowColor(IntPtr window, int attribute, Color color) {
-        var colorRef = color.R | color.G << 8 | color.B << 16;
-        // Older Windows versions do not know these attributes and say so; the window keeps its dark default.
-        _ = DwmSetWindowAttribute(window, attribute, ref colorRef, sizeof(int));
-    }
-
-    [LibraryImport("dwmapi.dll")]
-    private static partial int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);
-
     private sealed class Renderer() : ToolStripProfessionalRenderer(new Colors()) {
         protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e) {
-            e.TextColor = e.Item.Enabled ? Text : TextDisabled;
+            // Status fields carry their own colour; disabled items are left to WinForms.
+            if (e.Item.Enabled && e.Item is not ToolStripStatusLabel) e.TextColor = e.Item.Selected || e.Item.Pressed ? SelectionText : Text;
             base.OnRenderItemText(e);
         }
 
         protected override void OnRenderArrow(ToolStripArrowRenderEventArgs e) {
-            e.ArrowColor = e.Item is { Enabled: true } ? Text : TextDisabled;
+            if (e.Item is { Enabled: true }) e.ArrowColor = Text;
             base.OnRenderArrow(e);
         }
 
@@ -95,14 +120,17 @@ public static partial class DarkTheme {
         public override Color ImageMarginGradientBegin => Surface;
         public override Color ImageMarginGradientMiddle => Surface;
         public override Color ImageMarginGradientEnd => Surface;
-        public override Color MenuBorder => Border;
-        public override Color MenuItemBorder => Hover;
-        public override Color MenuItemSelected => Hover;
-        public override Color MenuItemSelectedGradientBegin => Hover;
-        public override Color MenuItemSelectedGradientEnd => Hover;
-        public override Color MenuItemPressedGradientBegin => Hover;
-        public override Color MenuItemPressedGradientMiddle => Hover;
-        public override Color MenuItemPressedGradientEnd => Hover;
+        public override Color CheckBackground => Selection;
+        public override Color CheckSelectedBackground => Selection;
+        public override Color CheckPressedBackground => Selection;
+        public override Color MenuBorder => ControlBorder;
+        public override Color MenuItemBorder => Accent;
+        public override Color MenuItemSelected => Selection;
+        public override Color MenuItemSelectedGradientBegin => Selection;
+        public override Color MenuItemSelectedGradientEnd => Selection;
+        public override Color MenuItemPressedGradientBegin => Selection;
+        public override Color MenuItemPressedGradientMiddle => Selection;
+        public override Color MenuItemPressedGradientEnd => Selection;
         public override Color SeparatorDark => Border;
         public override Color SeparatorLight => Border;
     }

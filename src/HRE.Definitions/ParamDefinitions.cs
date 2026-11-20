@@ -41,6 +41,10 @@ public sealed record MultiplierSpec(string? Symbol, RomValue? Address, Multiplie
 public sealed record ParamSpec {
     public required string Category { get; init; }
     public required string Name { get; init; }
+
+    /// <summary>What the parameter is, in plain words.</summary>
+    public string Doc { get; init; } = "";
+
     public string? Symbol { get; init; }
     public RomValue? Address { get; init; }
     public required string Kind { get; init; }
@@ -95,6 +99,7 @@ public static class ParamDefinitions {
             specs.Add(new ParamSpec {
                 Category = TomlReader.String(t, "category"),
                 Name = TomlReader.String(t, "name"),
+                Doc = TomlReader.String(t, "doc", ""),
                 Symbol = symbol,
                 Address = address,
                 Kind = TomlReader.String(t, "kind"),
@@ -310,6 +315,7 @@ public static class ParamDefinitions {
         var def = new ParamDef {
             Category = p.Category,
             Name = p.Name,
+            Doc = p.Doc,
             Symbol = p.Symbol,
             Offset = offset,
             Kind = kind,

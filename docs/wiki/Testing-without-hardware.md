@@ -7,7 +7,7 @@ Everything is testable with no ECU, engine simulator or emulator attached.
 | ROM model and file formats | Unit tests; round trips of real project files |
 | Build | The P28-230 source project must build to an image with the SHA-256 recorded in its manifest |
 | Definition packs | Fingerprints and table reads checked against a corpus of ROM images; every patch recipe applied then reverted byte-identically |
-| Application window | What the window shows is built by code that needs no window and is unit-tested; the window itself is created in tests without being shown; the palette is checked for contrast |
+| Application window | Every page and every sentence is built by code that needs no window and is unit-tested, including the rule that plain sections hold no addresses and that every problem offers a way on; the window and its pages are created in tests without being shown, and checked for names, roles, tab order, overlap and growth at twice the text size; the palette is checked for contrast |
 | Datalog drivers | Scripted byte transcripts, including bad checksums and resynchronisation |
 | End-to-end logging | A virtual ECU runs the real ROM and serves its serial port over TCP; RPM, load and throttle are set through a control channel |
 | Tuning math | Synthetic logs with a known transport delay and lambda error that the pipeline must recover |

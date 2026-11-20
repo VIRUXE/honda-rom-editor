@@ -22,6 +22,11 @@ public sealed record Fingerprint(int? Size, string? Sha256, IReadOnlyList<ByteMa
 public readonly record struct FingerprintMatch(bool Exact, int Bits) : IComparable<FingerprintMatch> {
     public int CompareTo(FingerprintMatch other) =>
         Exact != other.Exact ? Exact.CompareTo(other.Exact) : Bits.CompareTo(other.Bits);
+
+    public static bool operator <(FingerprintMatch a, FingerprintMatch b) => a.CompareTo(b) < 0;
+    public static bool operator <=(FingerprintMatch a, FingerprintMatch b) => a.CompareTo(b) <= 0;
+    public static bool operator >(FingerprintMatch a, FingerprintMatch b) => a.CompareTo(b) > 0;
+    public static bool operator >=(FingerprintMatch a, FingerprintMatch b) => a.CompareTo(b) >= 0;
 }
 
 /// <summary>The datalog protocol a ROM's firmware speaks, and its baud rate when the protocol does not fix it.</summary>
@@ -36,6 +41,10 @@ public sealed record DefinitionPack {
     public required string Id { get; init; }
 
     public required string Name { get; init; }
+
+    /// <summary>What a newcomer should know about this kind of ROM, in a sentence or two. Empty when there is nothing to add.</summary>
+    public string Doc { get; init; } = "";
+
     public RomPlatform Platform { get; init; } = RomPlatform.Obd1Oki66207;
     public int RomSize { get; init; } = 0x8000;
     public required IReadOnlyList<Fingerprint> Fingerprints { get; init; }
@@ -139,6 +148,7 @@ public static class DefinitionPacks {
         return new DefinitionPack {
             Id = TomlReader.String(root, "id"),
             Name = TomlReader.String(root, "name"),
+            Doc = TomlReader.String(root, "doc", ""),
             Platform = ParamDefinitions.ParsePlatform(root) ?? RomPlatform.Obd1Oki66207,
             RomSize = romSize,
             Fingerprints = fingerprints,

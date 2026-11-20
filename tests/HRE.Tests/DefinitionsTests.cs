@@ -75,7 +75,7 @@ public class DefinitionsTests {
         var symbols = Map(("t", 0x100), ("ra", 0x200), ("ca", 0x300));
         Assert.Equal(["t: a table needs at least 2 rows and 2 cols, not 0 x 2"], ParamDefinitions.Resolve(Table("0", "2", ""), symbols).Problems);
         Assert.Equal(["t: a table needs at least 2 rows and 2 cols, not 1 x 10"], ParamDefinitions.Resolve(Table("1", "10", SymbolAxes), symbols).Problems);
-        var huge = (long.MaxValue / 2).ToString();
+        var huge = (long.MaxValue / 2).ToString(System.Globalization.CultureInfo.InvariantCulture);
         Assert.Equal([$"t: {huge} x 3 cells is too large"], ParamDefinitions.Resolve(Table(huge, "3", SymbolAxes), symbols).Problems);
         var (defs, problems) = ParamDefinitions.Resolve(Table("2", "2", SymbolAxes), symbols);
         Assert.Empty(problems);

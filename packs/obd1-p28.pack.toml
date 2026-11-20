@@ -3,6 +3,7 @@
 # 314, 315, 317, 318, 321, 327 and 368. The P28 with ROM number 230 is of the P30 type.
 id = "obd1-p28"
 name = "Honda OBD1, P28 type"
+doc = "The type names the program inside the ROM, not the part number on the ECU: one part number can carry either type."
 platform = "obd1-66207"
 rom_size = 0x8000
 
@@ -61,6 +62,7 @@ location = 0x7FFF
 [[param]]
 category = "Fuel"
 name = "Fuel Map (Low Cam)"
+doc = "How much fuel the engine gets at each engine speed (rows) and engine load (columns) while VTEC is off. A bigger number means more fuel."
 address = 0x7050
 kind = "table"
 rows = 20
@@ -74,6 +76,7 @@ multiplier = { kind = "linear" }
 [[param]]
 category = "Fuel"
 name = "Fuel Map (High Cam)"
+doc = "How much fuel the engine gets at each engine speed (rows) and engine load (columns) while VTEC is on. A bigger number means more fuel."
 address = 0x7122
 kind = "table"
 rows = 20
@@ -87,6 +90,7 @@ multiplier = { kind = "linear" }
 [[param]]
 category = "Ignition"
 name = "Ignition Map (Low Cam)"
+doc = "When the spark fires at each engine speed (rows) and engine load (columns) while VTEC is off, in degrees before the piston reaches the top. A bigger number means an earlier spark."
 address = 0x72E4
 kind = "table"
 rows = 20
@@ -101,6 +105,7 @@ col_axis = { label = "MAP kPa", address = 0x7000, encoding = "bytes", scale = 0.
 [[param]]
 category = "Ignition"
 name = "Ignition Map (High Cam)"
+doc = "When the spark fires at each engine speed (rows) and engine load (columns) while VTEC is on, in degrees before the piston reaches the top. A bigger number means an earlier spark."
 address = 0x73AC
 kind = "table"
 rows = 20
