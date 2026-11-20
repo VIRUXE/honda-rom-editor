@@ -71,8 +71,13 @@ public static class Fingerprints {
         return new FingerprintMatch(fingerprint.Sha256 is not null, bits);
     }
 
-    /// <summary>The best match among a pack's fingerprints; null when none matches.</summary>
+    /// <summary>
+    /// The best match among a pack's fingerprints; null when none matches. An image shorter than
+    /// the pack's ROM never matches: a dump that stops short holds the bytes a fingerprint
+    /// compares but not the whole ROM, so it could be neither checked nor saved as that ROM.
+    /// </summary>
     public static FingerprintMatch? Match(DefinitionPack pack, RomImage image) {
+        if (image.Length < pack.RomSize) return null;
         FingerprintMatch? best = null;
         foreach (var fingerprint in pack.Fingerprints) {
             if (Match(fingerprint, image) is { } match && (best is null || match.CompareTo(best.Value) > 0)) best = match;

@@ -155,6 +155,23 @@ public class DefinitionPackTests {
         Assert.Null(Fingerprints.Match(hashed, variant));
     }
 
+    /// <summary>
+    /// A dump that stops short of the ROM can hold every byte a fingerprint compares. It is still
+    /// not that ROM; a longer file, such as a ROM with notes after it, is.
+    /// </summary>
+    [Fact]
+    public void AnImageShorterThanThePacksRomIsNotThatRom() {
+        var (pack, rom) = (Mini(), MiniRom());
+        var shorter = new RomImage(rom.Bytes[..0x7D00]);
+        Assert.NotNull(Fingerprints.Match(pack.Fingerprints[1], shorter));
+        Assert.Null(Fingerprints.Match(pack, shorter));
+        Assert.Empty(DefinitionPacks.Identify([pack], shorter));
+
+        var longer = new RomImage([.. rom.Bytes, .. "notes"u8]);
+        Assert.Equal(new FingerprintMatch(false, 20), Fingerprints.Match(pack, longer));
+        Assert.Equal(["mini"], DefinitionPacks.Identify([pack], longer).Select(m => m.Pack.Id));
+    }
+
     [Fact]
     public void IdentifyRanksAnExactMatchFirst() {
         var rom = MiniRom();

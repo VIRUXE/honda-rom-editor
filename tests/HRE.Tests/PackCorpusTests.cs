@@ -55,7 +55,40 @@ public class PackCorpusTests {
         }
         Assert.Empty(wrong);
         // Factory images, tunes that kept the factory layout, and the editors' base images.
-        Assert.Equal(71, Expected().Count(e => e.Pack is not null));
+        Assert.Equal(95, Expected().Count(e => e.Pack is not null));
+    }
+
+    /// <summary>
+    /// Files that are not exactly one ROM long are judged by the ROM they hold. Text after the
+    /// ROM, or the ROM written twice to fill a larger chip, does not hide it; a dump that stops
+    /// short is not that ROM; a ROM in the upper half of a larger file is not looked for there.
+    /// </summary>
+    [WorkspaceFact(CorpusDir + "/hondabase/ecu-roms/368-d14a2-p1j-stock.bin", CorpusDir + "/hondabase/hts/bins/B20 Unknown Joey.BIN")]
+    public void FilesOfOtherSizesAreJudgedByTheRomTheyHold() {
+        var packs = ShippedPackTests.Packs();
+        (int Length, string? Pack) Found(string path) {
+            var image = RomImage.Load(CorpusPath(path));
+            return (image.Length, DefinitionPacks.Identify(packs, image).Select(m => m.Pack.Id).SingleOrDefault());
+        }
+
+        // A factory ROM with a line of text after it, and one written twice into 64 KiB.
+        Assert.Equal((32860, "obd1-p28"), Found("hondabase/ecu-roms/368-d14a2-p1j-stock.bin"));
+        Assert.Equal((65536, "obd1-p30"), Found("hondabase/ecu-roms/OKI_P30.BIN"));
+        // A tune with enlarged maps and its notes after the ROM.
+        Assert.Equal((32923, null), Found("hondabase/xenocron/crome/d/final-notes.bin"));
+        // Dumps of 32000 bytes and a file that is short of 32 KiB.
+        Assert.Equal((32000, null), Found("hondabase/ecu-roms/p30-010-244MCU-extensionG8.bin"));
+        Assert.Equal((32000, null), Found("hondabase/ecu-roms/P54-J00-204MCUwithE2Ext.bin"));
+        Assert.Equal((32000, null), Found("hondabase/ecu-roms/P91-900-253MCU.bin"));
+        Assert.Equal((32673, null), Found("hondabase/xenocron/crome/h/Accord-SOHC_VTEC-P28_datalogge"));
+        // 64 KiB with the ROM in the upper half.
+        Assert.Equal((65536, null), Found("hondabase/hts/bins/B20 Unknown Joey.BIN"));
+
+        // The longer files read like the ROM alone: the P1J's low-cam axis starts at 500 rpm.
+        var p1j = RomImage.Load(CorpusPath("hondabase/ecu-roms/368-d14a2-p1j-stock.bin"));
+        var pack = ShippedPackTests.Pack("obd1-p28");
+        Assert.True(Checksum.IsValid(p1j, pack.Checksum));
+        Assert.Equal(500f, ParamAccess.AxisValues(p1j, pack.Defs[0].RowAxis, 20)[0]);
     }
 
     [WorkspaceFact(Manifest, Editors)]
@@ -90,8 +123,9 @@ public class PackCorpusTests {
             }
         }
         Assert.Empty(wrong);
-        // The four P72-type images for engines without VTEC.
-        Assert.Equal(4, withoutHighCam);
+        // The P72-type images for engines without VTEC: four ROMs, and five more copies of one of
+        // them among the base images a tuning program ships.
+        Assert.Equal(9, withoutHighCam);
     }
 
     /// <summary>The checksum each pack describes is the one the images actually satisfy.</summary>
@@ -114,7 +148,7 @@ public class PackCorpusTests {
             }
         }
         // 327, 332 and 215 as archived, a baseline another editor left uncorrected, and one tune.
-        Assert.Equal((65, 5), (valid, invalid));
+        Assert.Equal((89, 5), (valid, invalid));
     }
 
     /// <summary>

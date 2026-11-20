@@ -5,7 +5,7 @@ An existing `.bin` is opened through a definition pack ([[Definition packs]] doc
 | Pack | Describes | Maps | Checksum byte |
 |---|---|---|---|
 | `obd1-p30` | Factory OBD1 firmware of the P30 type. Checked on ROM numbers 202, 203, 205, 209, 215, 219, 224, 230, 231, 232, 233, 235, 237 and 240, which include the P30 (203, 209, 240) and the P28 with ROM number 230 | 20 x 10, both cams | `0x7FFF` |
-| `obd1-p28` | Factory OBD1 firmware of the P28 type. Checked on ROM numbers 243, 244, 245, 248, 249, 251, 259, 301, 303, 304, 305, 311, 314, 315, 317, 318, 321 and 327, which include the P28 (304, 315, 317, 327) | 20 x 10, both cams | `0x7FFF` |
+| `obd1-p28` | Factory OBD1 firmware of the P28 type. Checked on ROM numbers 243, 244, 245, 248, 249, 251, 259, 301, 303, 304, 305, 311, 314, 315, 317, 318, 321, 327 and 368, which include the P28 (304, 315, 317, 327) | 20 x 10, both cams | `0x7FFF` |
 | `obd1-p72` | Factory OBD1 firmware of the P72 type. Checked on ROM numbers 269, 270, 273, 274 and 332 | 20 x 10 low cam, 15 x 10 high cam | `0x003B` |
 | `crome-gold` | The CROME Gold base ROM, v0.94 | 20 x 24, both cams | `0x003B` |
 | `ectune-273` | ROMs eCtune builds on its eCt-273 firmware, v0.0.65 | 20 x 24, both cams, two sets | none: the firmware does not check one |
@@ -20,7 +20,7 @@ Each pack's fingerprint is the handful of instructions with which the firmware f
 - **A ROM is never read from the wrong place.** Where a tuning program has enlarged or moved the maps, the instructions name other addresses and sizes, so the pack does not match and the ROM is reported as unknown.
 - **No ROM matches two packs.** Every two packs disagree on at least one byte that both compare.
 
-A file with a stray byte after the 32 KiB ROM is recognised as well.
+A file that is longer than the ROM is judged by the ROM it starts with: notes a tuning program appended, or the ROM written twice to fill a 64 KiB chip, do not hide it. A dump that stops short of 32 KiB is not recognised, because it could be neither checked nor saved as that ROM.
 
 ## What a pack exposes
 
@@ -47,9 +47,10 @@ Limiters, VTEC points, idle and the other scalars are not in the packs yet.
 
 ## How the packs are checked
 
-Against a corpus of 193 images: factory ROMs, tunes made with several programs, the base images tuning programs hand out, and files that are not OBD1 ROMs at all. A list states for each one which pack it is, or that it is none.
+Against a corpus of 259 images of 32 KiB: factory ROMs, tunes made with several programs, the base images tuning programs hand out, and files that are not OBD1 ROMs at all. A list states for each one which pack it is, or that it is none.
 
-- 71 images are identified, each by exactly one pack: 33 of the P30 type, 25 of the P28 type, 10 of the P72 type, both CROME Gold images and the eCt-273 base. The other 122 match no pack, among them all 34 tunes with enlarged maps.
+- 95 images are identified, each by exactly one pack: 38 of the P30 type, 34 of the P28 type, 20 of the P72 type, both CROME Gold images and the eCt-273 base. The other 164 match no pack, among them all 41 images with enlarged maps, the OBD0 ROMs and the Acura Legend and NSX ROMs.
+- Files of other sizes are judged as described above: a factory ROM with text after it and one written twice into 64 KiB are identified; dumps of 32000 bytes are not.
 - Every parameter lies inside its image, and every axis read from an image is ordered and spans engine speeds and pressures an engine can see.
 - Every image whose bytes sum to zero passes its pack's checksum, and correcting one that does not changes only the checksum byte.
 - The P28 with ROM number 230 reads the same through its pack as through its source project: the same map addresses, the same axes in rpm and kPa, the factory column multipliers, 16.5 degrees at idle.

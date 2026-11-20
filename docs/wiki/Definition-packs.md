@@ -84,6 +84,8 @@ A pack has one or more `[[fingerprint]]` entries. The pack matches an image when
 
 A fingerprint needs a `sha256` or `bytes`; a size alone would claim every image of that length.
 
+An image shorter than `rom_size` never matches a pack, whatever its fingerprints compare: a dump that stops short is not that ROM. A longer one can match, unless a fingerprint states a `size`.
+
 When several packs match, a hash match ranks first, then the fingerprint that compared the most bits. Packs of equal strength are all offered and the user chooses.
 
 ## Checksum

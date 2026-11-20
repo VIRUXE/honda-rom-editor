@@ -1,6 +1,6 @@
 # Factory firmware of the kind the P28 (304) carries, and tunes made on it that keep its map
 # layout. Checked on ROM numbers 243, 244, 245, 248, 249, 251, 259, 301, 303, 304, 305, 311,
-# 314, 315, 317, 318, 321 and 327. The P28 with ROM number 230 is of the P30 type.
+# 314, 315, 317, 318, 321, 327 and 368. The P28 with ROM number 230 is of the P30 type.
 id = "obd1-p28"
 name = "Honda OBD1, P28 type"
 platform = "obd1-66207"

@@ -7,6 +7,72 @@ obd1-p30	editors/crome/P30 JDM Civic B16A (203).NEW
 obd1-p30	editors/crome/P30G EDM Civic B16A2 (209).NEW
 obd1-p72	editors/crome/P72 USDM Integra B18C1-3 (273).NEW
 ectune-273	editors/ectune/eCt-273-v0.0.65.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/ECU Debugger v3.4.0.2.1/CustomDebuggerCode.code
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/ECU Debugger v3.4.0.2.1/CustomDebuggerCode_VCAL.code
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/P04/p04_rev1_198.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/P04/p04_rev2_146.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/P04/p04_rev3_171.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/P04/p04_rev4_222.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/P04/p04_rev5_136.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/P04/p04_rev6_826.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/P04/p04_rev7_107.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/P04/p04_rev8_128.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/P04/p04_rev9_140.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/P04/p04_try_374.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/P04/stock_p04-g01_131.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/P04/stock_p04-g01_297.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/P04/stock_p04-g02_sajmon1100_739.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/PM5/pm5_dump_176.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/PM5/pm5_x30_1991508_175.bin
+-	hondabase/_from-archives/ecu-roms/DPFI-ROM-DevKit/DPFI-Development/PM5/stock_pm5_x30_120.bin
+obd1-p28	hondabase/_from-archives/uberdata/Uberdata 1.7 BETA/p06-import-only.bin
+obd1-p28	hondabase/_from-archives/uberdata/Uberdata 1.7 BETA/p28-import-only.bin
+obd1-p30	hondabase/_from-archives/uberdata/Uberdata 1.7 BETA/p30-import-only.bin
+obd1-p72	hondabase/_from-archives/uberdata/Uberdata 1.7 BETA/StockGSR.bin
+obd1-p72	hondabase/_from-archives/uberdata/Uberdata 1.7 BETA/StockLS.bin
+-	hondabase/_from-archives/uberdata/Uberdata1.66-blake/Blake1.bin
+-	hondabase/_from-archives/uberdata/Uberdata1.66-blake/Blake2.bin
+obd1-p28	hondabase/_from-archives/uberdata/Uberdata1.66-blake/p06.bin
+obd1-p28	hondabase/_from-archives/uberdata/Uberdata1.66-blake/p28.bin
+obd1-p28	hondabase/_from-archives/uberdata/Uberdata1.66-blake/p29-q01-244.bin
+obd1-p30	hondabase/_from-archives/uberdata/Uberdata1.66-blake/p30.bin
+-	hondabase/_from-archives/uberdata/Uberdata1.66-blake/ross.bin
+obd1-p72	hondabase/_from-archives/uberdata/Uberdata1.66-blake/StockGSR.bin
+obd1-p72	hondabase/_from-archives/uberdata/Uberdata1.66-blake/StockLS.bin
+-	hondabase/_from-archives/uberdata/Uberdata1.66-blake/test.bin
+-	hondabase/_from-archives/uberdata/Uberdata1.66-w00tw00t/Blake1.bin
+-	hondabase/_from-archives/uberdata/Uberdata1.66-w00tw00t/Blake2.bin
+obd1-p28	hondabase/_from-archives/uberdata/Uberdata1.66-w00tw00t/p06.bin
+obd1-p28	hondabase/_from-archives/uberdata/Uberdata1.66-w00tw00t/p28.bin
+obd1-p30	hondabase/_from-archives/uberdata/Uberdata1.66-w00tw00t/p30.bin
+obd1-p72	hondabase/_from-archives/uberdata/Uberdata1.66-w00tw00t/StockGSR.bin
+obd1-p72	hondabase/_from-archives/uberdata/Uberdata1.66-w00tw00t/StockLS.bin
+-	hondabase/_from-archives/uberdata/Uberdata1.66-w00tw00t/test.bin
+obd1-p28	hondabase/_from-archives/uberdata/Uberdata1.70/p06-import-only.bin
+obd1-p28	hondabase/_from-archives/uberdata/Uberdata1.70/p28-import-only.bin
+obd1-p30	hondabase/_from-archives/uberdata/Uberdata1.70/p30-import-only.bin
+obd1-p72	hondabase/_from-archives/uberdata/Uberdata1.70/p75-import-only.bin
+obd1-p72	hondabase/_from-archives/uberdata/Uberdata1.70/StockGSR.bin
+obd1-p30	hondabase/_from-archives/uberdata/UD163/p30.bin
+obd1-p72	hondabase/_from-archives/uberdata/UD163/StockGSR.bin
+obd1-p72	hondabase/_from-archives/uberdata/UD163/StockLS.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/Legend-20Binaries-2091-92/PY3-A02, A52.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/Legend-20Binaries-2091-92/PY3-A55.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/Legend-20Binaries-2091-92/PY3-G52 European.BIN
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/Legend-20Binaries-2091-92/PY3-Y52 Guatemala.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/Legend-20Binaries-2093/PX9-A05, A15, A04, A55, A65.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/Legend-20Binaries-2093/PY3-A06, A53.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/Legend-20Binaries-2093/Py3-A58 stock.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/Legend-20Binaries-2094-95/JDM Type I (PY3-902).BIN
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/Legend-20Binaries-2094-95/JDM Type II.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/Legend-20Binaries-2094-95/PX9-A57, A67, L57, A17, A07.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/Legend-20Binaries-2094-95/PX9-L68 - California.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/Legend-20Binaries-2094-95/PY3-A58.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/Legend-20Binaries-2094-95/PY3-A72.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/NSX-20Binaries/NSX91M OEM.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/NSX-20Binaries/NSX94M OEM.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/NSX-20Binaries/PR7-A03.bin
+-	hondabase/_from-archives/xdf-and-bin/bins/Acura/NSX-20Binaries/PR7-xxx.bin
 obd1-p30	hondabase/ecu-roms/203stock.bin
 obd1-p28	hondabase/ecu-roms/243stock.bin
 obd1-p28	hondabase/ecu-roms/245stock.bin
