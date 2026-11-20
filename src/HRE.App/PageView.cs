@@ -18,6 +18,9 @@ public sealed class PageView : Panel {
     private Font? _titleFont;
     private Font? _headingFont;
     private Font? _glyphFont;
+    private DetailPage? _page;
+    private TableGrid? _grid;
+    private Label? _gridNote;
     private bool _arranging;
 
     public PageView() {
@@ -34,15 +37,21 @@ public sealed class PageView : Panel {
     /// <summary>The button that shows or hides the technical sections was pressed.</summary>
     public event Action? TechnicalToggled;
 
+    /// <summary>The table on the page has something to tell: what an action did, or why it did nothing.</summary>
+    public event Action<string>? Announced;
+
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public DetailPage? Page {
-        get;
+        get => _page;
         set {
-            field = value;
+            _page = value;
             AutoScrollPosition = Point.Empty;
             Rebuild();
         }
     }
+
+    /// <summary>The cells of the table on the page; null when the page shows no table.</summary>
+    public TableGrid? Grid => _grid;
 
     /// <summary>Whether the technical sections of a page are shown.</summary>
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -62,10 +71,27 @@ public sealed class PageView : Panel {
         return first is not null;
     }
 
+    /// <summary>
+    /// Shows the page again after what it describes changed. The view stays where it was scrolled
+    /// to, and the table keeps its selection and the keyboard focus.
+    /// </summary>
+    public void Revise(DetailPage page) {
+        var scrolled = -AutoScrollPosition.Y;
+        _page = page;
+        Rebuild();
+        AutoScrollPosition = new Point(0, scrolled);
+    }
+
     /// <summary>Creates the controls of the page anew: after the page, the colours or the font changed.</summary>
     public void Rebuild() {
         SuspendLayout();
-        foreach (var old in Controls.Cast<Control>().ToArray()) old.Dispose();
+        // The table of the page stays when the new page shows the same one: it has the selection and may have the focus.
+        var kept = Page?.Blocks.OfType<PageBlock.Grid>().FirstOrDefault() is { } shown && _grid is { } grid && ReferenceEquals(grid.Document, shown.Document) && grid.Def == shown.Def ? grid : null;
+        foreach (var old in Controls.Cast<Control>().ToArray()) {
+            if (old != kept) old.Dispose();
+        }
+        _grid = kept;
+        _gridNote = null;
         _parts.Clear();
         _titleFont?.Dispose();
         _headingFont?.Dispose();
@@ -94,6 +120,9 @@ public sealed class PageView : Panel {
                         break;
                     case PageBlock.Actions actions:
                         AddActions(actions);
+                        break;
+                    case PageBlock.Grid table:
+                        AddGrid(table);
                         break;
                 }
             }
@@ -131,10 +160,19 @@ public sealed class PageView : Panel {
             Keys.Control | Keys.Home => -int.MaxValue / 2,
             _ => 0,
         };
-        if (step == 0) return base.ProcessCmdKey(ref msg, keyData);
+        // In the table these keys move between cells, and the page follows the cell.
+        if (step == 0 || _grid?.ContainsFocus == true) return base.ProcessCmdKey(ref msg, keyData);
         AutoScrollPosition = new Point(0, Math.Max(0, -AutoScrollPosition.Y + step));
         return true;
     }
+
+    /// <summary>
+    /// Where to scroll when a control takes the focus. The table is taller than most views, and
+    /// bringing its top into view would move it away under the pointer: the page follows the
+    /// cell instead (<see cref="RevealCell"/>).
+    /// </summary>
+    protected override Point ScrollToControl(Control activeControl) =>
+        activeControl == _grid ? DisplayRectangle.Location : base.ScrollToControl(activeControl);
 
     protected override void Dispose(bool disposing) {
         if (disposing) {
@@ -250,6 +288,52 @@ public sealed class PageView : Panel {
             }
             return height;
         });
+    }
+
+    private void AddGrid(PageBlock.Grid block) {
+        AddHeading(block.Heading);
+        // Above the cells: a table is taller than most windows, and what can be done with it is not to be scrolled for.
+        AddText(Details.GridHelp, null, DarkTheme.TextDim, 0.2f);
+        if (_grid is null) {
+            _grid = new TableGrid(block.Document, block.Def);
+            _grid.Announced += text => {
+                _gridNote?.Text = text;
+                Arrange();
+                Announced?.Invoke(text);
+            };
+            _grid.ContentSizeChanged += () => {
+                Arrange();
+                RevealCell();
+            };
+            _grid.CurrentCellChanged += (_, _) => RevealCell();
+            _grid.Enter += (_, _) => RevealCell();
+            Controls.Add(_grid);
+        } else {
+            _grid.ApplyTheme();
+        }
+        // The tab order is the order of the controls: the table comes after what was created before it.
+        Controls.SetChildIndex(_grid, Controls.Count - 1);
+        var grid = _grid;
+        // What the last action did, for those who do not hear it announced. It keeps its line, so nothing moves when it speaks.
+        var note = _gridNote = NewLabel("", null, DarkTheme.Text);
+        _parts.Add((x, y, width) => {
+            // The table may be wider than the reading column, up to the width of the view.
+            var size = grid.FitSize(ClientSize.Width - x - Em(1.25f));
+            grid.SetBounds(x, y + Em(0.5f), size.Width, size.Height);
+            var noteHeight = Math.Max(Fit(note, x, y + Em(0.5f) + size.Height + Em(0.4f), width), Em(1f));
+            return Em(0.5f) + size.Height + Em(0.4f) + noteHeight;
+        });
+    }
+
+    /// <summary>Scrolls the page so that the cell the keyboard is on is in view.</summary>
+    private void RevealCell() {
+        if (_arranging || _grid is not { CurrentCellAddress: { X: >= 0, Y: >= 0 } at } grid) return;
+        var cell = grid.GetCellDisplayRectangle(at.X, at.Y, cutOverflow: false);
+        if (cell.IsEmpty) return;
+        cell.Offset(grid.Location);
+        var margin = Em(0.5f);
+        var move = cell.Top - margin < 0 ? cell.Top - margin : cell.Bottom + margin > ClientSize.Height ? cell.Bottom + margin - ClientSize.Height : 0;
+        if (move != 0) AutoScrollPosition = new Point(0, Math.Max(0, -AutoScrollPosition.Y + move));
     }
 
     private void AddActions(PageBlock.Actions actions) {

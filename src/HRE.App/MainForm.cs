@@ -116,6 +116,7 @@ public sealed class MainForm : Form {
         _tree.LostFocus += (_, _) => _tree.Invalidate();
         _page.ActionInvoked += RunPageAction;
         _page.TechnicalToggled += ToggleTechnical;
+        _page.Announced += Announce;
         _page.ShowTechnical = _settings.ShowTechnical;
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
 
@@ -139,6 +140,8 @@ public sealed class MainForm : Form {
         switch (RomSession.Open(path, _packs)) {
             case OpenResult.Opened opened:
                 Session = opened.Session;
+                // What a page says of a table follows the table as it is changed.
+                Session.Document.Changed += () => _page.Revise(BuildPage());
                 _problem = null;
                 _settings.Remember(Session.Path);
                 ShowSession();
@@ -343,13 +346,15 @@ public sealed class MainForm : Form {
     }
 
     /// <summary>Shows the page of what is selected, under the problem to report when there is one.</summary>
-    private void ShowPage() {
+    private void ShowPage() => _page.Page = BuildPage();
+
+    private DetailPage BuildPage() {
         var page = Session is not { } session ? Details.Start(_packs, _packErrors, _settings.RecentFiles) : _tree.SelectedNode?.Tag switch {
-            ParamDef def => Details.Param(session.Image, def),
+            ParamDef def => Details.Param(session.Document, def),
             ParamCategory category => Details.Category(category),
             _ => Details.Rom(session),
         };
-        _page.Page = _problem is null ? page : page with { Blocks = [.. _problem, .. page.Blocks] };
+        return _problem is null ? page : page with { Blocks = [.. _problem, .. page.Blocks] };
     }
 
     private void ShowRecentFiles() {

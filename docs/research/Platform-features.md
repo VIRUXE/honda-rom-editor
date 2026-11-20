@@ -31,7 +31,7 @@ Not done: no screen reader was run, no real drag and drop was performed, and no 
 | `SystemIcons.GetStockIcon` | Stable | Not used: multi-colour icons cannot be tinted and sit badly on black |
 | `TaskDialog` | Stable, but white under the dark colour mode | Not used |
 | `ListView` groups | Group headers unreadable under the dark colour mode | Not used |
-| `DataGridView` | Can be made black (`EnableHeadersVisualStyles = false` plus header styles); brings keyboard handling and accessibility with it | To be weighed for the table grid against a control of its own |
+| `DataGridView` | Can be made black (`EnableHeadersVisualStyles = false` plus header styles); brings keyboard handling and accessibility with it | Used for the table grid, with every cell drawn by the editor. See [The table grid](Table-grid.md) for what it gives and what had to be changed |
 | `Application.SystemVisualSettings` (text scale, contrast, focus metrics, animation) | New in 11, stable; values were read, changes not observed | Not used yet. High contrast is read through `SystemInformation.HighContrast` and `SystemEvents.UserPreferenceChanged`, which behave the same on older versions |
 | Command binding (`ToolStripItem.Command`, `ButtonBase.Command`) | Stable | Not used: with a handful of commands, each raised from one or two places, it would add types without removing code. To be looked at again with a toolbar |
 | `Control.InvokeAsync`, `Form.ShowDialogAsync` | Stable | Not needed to read a 32 KB file. For the datalogger and other work off the window's thread |

@@ -11,6 +11,13 @@ public static class DarkTheme {
         return new Icon(stream);
     });
 
+    private static readonly Color[] HeatStops = [
+        Color.FromArgb(0x6E, 0xAF, 0xFF),
+        Color.FromArgb(0x5F, 0xCD, 0x82),
+        Color.FromArgb(0xF0, 0xD7, 0x50),
+        Color.FromArgb(0xFF, 0x7D, 0x69),
+    ];
+
     /// <summary>Whether a Windows contrast theme is on.</summary>
     public static bool HighContrast => SystemInformation.HighContrast;
 
@@ -41,7 +48,24 @@ public static class DarkTheme {
     public static Color Warning => HighContrast ? SystemColors.WindowText : Color.FromArgb(0xF0, 0xC8, 0x28);
     public static Color Bad => HighContrast ? SystemColors.WindowText : Color.FromArgb(0xEB, 0x3C, 0x2D);
 
+    /// <summary>The text on a cell of a table, whatever its heat colour.</summary>
+    public static Color HeatText => HighContrast ? SystemColors.WindowText : Color.Black;
+
     public static Icon AppIcon => LazyIcon.Value;
+
+    /// <summary>
+    /// The colour of a table cell from the smallest value of its table (0) to the largest (1):
+    /// blue, green, yellow, red, all light enough for black text. Under a contrast theme cells
+    /// have the colour of the window: the number says it all.
+    /// </summary>
+    public static Color Heat(double t) {
+        if (HighContrast) return SystemColors.Window;
+        var at = Math.Clamp(double.IsNaN(t) ? 0.5 : t, 0, 1) * (HeatStops.Length - 1);
+        var i = Math.Min((int)at, HeatStops.Length - 2);
+        var (a, b, f) = (HeatStops[i], HeatStops[i + 1], at - i);
+        int Mix(int x, int y) => (int)Math.Round(x + (y - x) * f);
+        return Color.FromArgb(Mix(a.R, b.R), Mix(a.G, b.G), Mix(a.B, b.B));
+    }
 
     public static Color SeverityColor(Severity severity) => severity switch {
         Severity.Info => Accent,

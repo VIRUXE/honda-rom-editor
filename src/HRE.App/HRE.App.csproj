@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HRE.Tests" />
+    <InternalsVisibleTo Include="HRE.Shots" />
   </ItemGroup>
 
   <ItemGroup>

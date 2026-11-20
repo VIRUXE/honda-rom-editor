@@ -62,6 +62,9 @@ public sealed class RomSession {
         OtherMatches = otherMatches;
         Defs = defs;
         Problems = problems;
+        Checksum = pack.Checksum.Kind == ChecksumKind.None ? ChecksumState.None
+            : Core.Checksum.IsValid(document.Image, pack.Checksum) ? ChecksumState.Valid
+            : ChecksumState.Wrong;
     }
 
     public string Path { get; }
@@ -80,10 +83,11 @@ public sealed class RomSession {
 
     public string FileName => System.IO.Path.GetFileName(Path);
 
-    public ChecksumState Checksum =>
-        Pack.Checksum.Kind == ChecksumKind.None ? ChecksumState.None
-        : Core.Checksum.IsValid(Image, Pack.Checksum) ? ChecksumState.Valid
-        : ChecksumState.Wrong;
+    /// <summary>
+    /// What the checksum said of the file as it was opened. Changing a table does not make the
+    /// file damaged: the checksum is corrected when the ROM is saved.
+    /// </summary>
+    public ChecksumState Checksum { get; }
 
     /// <summary>
     /// Reads the file and looks for the pack that describes it. Never throws for a file that is

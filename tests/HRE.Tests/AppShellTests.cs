@@ -13,13 +13,13 @@ namespace HRE.Tests;
 public class AppShellTests {
     private static readonly DefinitionPack[] Packs = [DefinitionPackTests.Mini()];
 
-    private static RomSession MiniSession(RomImage? image = null) => RomSession.Recognise(@"C:\roms\mini.bin", image ?? DefinitionPackTests.MiniRom(), Packs)!;
+    internal static RomSession MiniSession(RomImage? image = null) => RomSession.Recognise(@"C:\roms\mini.bin", image ?? DefinitionPackTests.MiniRom(), Packs)!;
 
     private static IEnumerable<PageBlock.Section> Sections(DetailPage page) => page.Blocks.OfType<PageBlock.Section>();
 
     private static IEnumerable<PageBlock.Notice> Notices(DetailPage page) => page.Blocks.OfType<PageBlock.Notice>();
 
-    private static string Value(DetailPage page, string label) => Sections(page).SelectMany(s => s.Rows).Single(r => r.Label == label).Value;
+    internal static string Value(DetailPage page, string label) => Sections(page).SelectMany(s => s.Rows).Single(r => r.Label == label).Value;
 
     /// <summary>Everything a page says outside its technical sections.</summary>
     private static string PlainText(IEnumerable<PageBlock> blocks) => string.Join("\n", blocks.SelectMany<PageBlock, string>(b => b switch {
@@ -42,7 +42,7 @@ public class AppShellTests {
     }
 
     /// <summary>Runs on a thread of its own that may own windows; what it throws is thrown here.</summary>
-    private static void OnUiThread(Action body) {
+    internal static void OnUiThread(Action body) {
         Exception? failure = null;
         var thread = new Thread(() => {
             try {
@@ -193,7 +193,7 @@ public class AppShellTests {
     public void ATablePageSaysWhatTheTableIsAndHowToReadIt() {
         var session = MiniSession();
         var described = session.Defs[0] with { Doc = "How much fuel the engine gets." };
-        var page = Details.Param(session.Image, described);
+        var page = Details.Param(session.Document, described);
         Assert.Equal(("Fuel Map", "Fuel"), (page.Title, page.Subtitle));
         Assert.Equal(new PageBlock.Paragraph("How much fuel the engine gets."), page.Blocks[0]);
         Assert.Equal("RPM: 2 steps, from 10 to 30", Value(page, "Rows"));
@@ -207,23 +207,23 @@ public class AppShellTests {
         Assert.Equal("Cell x 2^byte, 0x0120 to 0x0122 (3 bytes)", Value(page, "Column multiplier"));
         Assert.Equal("Bytes, each the step from the one before, 0x00F0 to 0x00F1 (2 bytes)", Value(page, "Row steps"));
 
-        var wide = Details.Param(session.Image, session.Defs[1]);
+        var wide = Details.Param(session.Document, session.Defs[1]);
         Assert.IsNotType<PageBlock.Paragraph>(wide.Blocks[0]);
         Assert.Equal("2 x 2, 16-bit, low byte first", Value(wide, "Cells"));
         Assert.Equal("stored x 0.5", Value(wide, "Shown as"));
         Assert.Equal("Not in the ROM: fixed by the description", Value(wide, "Column steps"));
-        Assert.Equal("While VTEC is on", Value(Details.Param(session.Image, session.Defs[0] with { Vtec = true }), "Used"));
+        Assert.Equal("While VTEC is on", Value(Details.Param(session.Document, session.Defs[0] with { Vtec = true }), "Used"));
     }
 
     [Fact]
     public void ASettingPageShowsTheValueAndWhatItMayBe() {
         var session = MiniSession();
-        var page = Details.Param(session.Image, session.Defs[2]);
+        var page = Details.Param(session.Document, session.Defs[2]);
         Assert.Equal("9000 rpm", Value(page, "Value"));
         Assert.Equal("From 3000 to 11000 rpm", Value(page, "Can be set"));
         Assert.Equal("9000, 16-bit, low byte first", Value(page, "Stored"));
         var locked = session.Defs[2] with { Kind = new ParamKind.Word(9000, 9000) };
-        Assert.Equal("No: this value is fixed", Value(Details.Param(session.Image, locked), "Can be changed"));
+        Assert.Equal("No: this value is fixed", Value(Details.Param(session.Document, locked), "Can be changed"));
     }
 
     [Fact]

@@ -32,6 +32,9 @@ public abstract record PageBlock {
 
     /// <summary>Buttons, under an optional heading.</summary>
     public sealed record Actions(IReadOnlyList<PageAction> Items, string? Heading = null) : PageBlock;
+
+    /// <summary>The cells of a table, to read and to change, under a heading.</summary>
+    public sealed record Grid(string Heading, RomDocument Document, ParamDef Def) : PageBlock;
 }
 
 /// <summary>What the page view shows: a title, a line under it and blocks.</summary>
@@ -45,8 +48,11 @@ public sealed record DetailPage(string Title, string Subtitle, IReadOnlyList<Pag
 public static class Details {
     public const string SupportedRomsUrl = "https://github.com/VIRUXE/honda-rom-editor/wiki/Supported-ROMs";
 
-    /// <summary>The one sentence that says what this version cannot do yet.</summary>
-    public const string EarlyVersion = "It opens ROM files for reading. It cannot change or save them yet.";
+    /// <summary>What can be done in the cells of a table, said above them: the keys are not to be guessed.</summary>
+    public const string GridHelp = "Move with the arrow keys; hold Shift to select more cells. Type a number and press Enter to change the selected cells, or press + and - to raise and lower them a step. Ctrl+C copies, Ctrl+V pastes.";
+
+    /// <summary>What this version can and cannot do yet.</summary>
+    public const string EarlyVersion = "It opens ROM files and lets you change the values of their tables. It cannot undo a change or save the file yet.";
 
     private static readonly CultureInfo Format = CultureInfo.InvariantCulture;
 
@@ -180,7 +186,8 @@ public static class Details {
             new PageBlock.Section("In this group", [.. category.Params.Select(p => new DetailRow(p.Name, p.Doc.Length > 0 ? p.Doc : KindText(p)))]),
         ]);
 
-    public static DetailPage Param(RomImage image, ParamDef def) {
+    public static DetailPage Param(RomDocument document, ParamDef def) {
+        var image = document.Image;
         var blocks = new List<PageBlock>();
         if (def.Doc.Length > 0) blocks.Add(new PageBlock.Paragraph(def.Doc));
         var technical = new List<DetailRow>();
@@ -196,6 +203,7 @@ public static class Details {
                 };
                 if (def.Vtec is { } vtec) reading.Add(new("Used", vtec ? "While VTEC is on" : "While VTEC is off"));
                 blocks.Add(new PageBlock.Section("How to read it", reading));
+                blocks.Add(new PageBlock.Grid(def.Unit.Length > 0 ? $"Values, in {def.Unit}" : "Values", document, def));
                 technical.Add(new("Cells", $"{table.Rows} x {table.Cols}, {CellName(def.Cell)}"));
                 AddScaling(technical, def);
                 if (def.Multiplier is { } m) {
