@@ -1,0 +1,13 @@
+name = "miniproj"
+entry = "main.asm"
+config = "config.inc"
+definitions = "definitions.toml"
+overlay = "overlay.toml"
+output = "miniproj.bin"
+rom_size = 32768
+
+[[features]]
+key = "FEATURE_X"
+label = "Feature X"
+default = true
+doc = "A four-byte routine that is gutted to RT + padding when off."

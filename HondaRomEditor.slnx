@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HRE.Core/HRE.Core.csproj" />
+    <Project Path="src/HRE.Definitions/HRE.Definitions.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HRE.Tests/HRE.Tests.csproj" />
+  </Folder>
+</Solution>

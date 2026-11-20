@@ -1,0 +1,20 @@
+[[param]]
+category = "Fuel"
+name = "Fuel Map (Low Cam)"
+symbol = "tbl_fuel"
+kind = "table"
+rows = 2
+cols = 3
+unit = "raw"
+vtec = false
+row_axis = { label = "RPM", symbol = "tbl_fuel_rpm" }
+col_axis = { label = "MAP kPa", symbol = "tbl_fuel_map" }
+
+[[param]]
+category = "Limits"
+name = "Rev Limiter"
+symbol = "rev_limit"
+kind = "word"
+min = 3000
+max = 11000
+unit = "rpm"
