@@ -138,6 +138,7 @@ outside this repository, are skipped when those are missing.
 | [OBD0](https://github.com/VIRUXE/honda-rom-editor/wiki/OBD0) | Which OBD0 ECUs, and how |
 | [Feature bundle](https://github.com/VIRUXE/honda-rom-editor/wiki/Feature-bundle) | Every planned editor and firmware feature |
 | [Testing without hardware](https://github.com/VIRUXE/honda-rom-editor/wiki/Testing-without-hardware) | How each area is verified |
+| [Research notes](docs/research/README.md) | How we know: the ROM corpus, the firmware types, what tuning programs leave in a ROM |
 
 ## Licence
 
