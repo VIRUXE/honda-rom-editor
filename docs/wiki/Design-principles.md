@@ -44,12 +44,13 @@ Someone tuning the engine computer of a Honda, from a file read from its chip. M
 - The window remembers where it was, the width of the list, the text size, whether technical details are shown, and the files opened lately.
 - A fault in the program is told in the window, which keeps running.
 
-Rules already fixed for editing and saving, which come later:
+Editing and saving:
 
 - Every change is one step that can be undone, named in the menu. Changes are not confirmed one by one.
 - The checksum is corrected when saving, without asking.
-- Saving never destroys the file that was opened without the user choosing to, and writes through a temporary file so that a crash cannot leave half a ROM.
-- The program asks only before what cannot be undone, and the button that is safe is the default.
+- Saving never destroys the file that was opened: the first time a file is replaced, the file as it was is kept next to it as a copy, and that copy is never overwritten. The ROM is written through a temporary file, so that a crash cannot leave half a ROM.
+- A file that cannot be written leaves the changes where they are, and the explanation offers saving under another name.
+- The program asks only before what cannot be undone, and the button that is safe is the default. There is one such question: whether to save the changes before a ROM is left.
 
 ## Accessibility
 

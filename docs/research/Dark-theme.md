@@ -27,6 +27,8 @@ The stock controls were looked at the same way, in throwaway forms holding one o
 | `DataGridView` | Dark cells; the column and row headers stay white until `EnableHeadersVisualStyles` is set to false and the header styles are given colours, after which they are dark too |
 | `ListView` with groups | The group headers come out nearly unreadable (dark blue on dark grey) |
 | `TaskDialog` | Stays white: it does not follow the colour mode |
+| `NumericUpDown` | Dark field with a light border; the two buttons stand side by side at its right end. It takes `BackColor` and `ForeColor` |
+| The default button of a window (`AcceptButton`, or the button that has the focus) | Filled with the accent colour of Windows (purple on the PC it was checked on), whatever `BackColor` it was given |
 
 So the colour mode is a sound base. It is grey, though, not black, and it has no accent colour; and two things do not follow it at all.
 
@@ -37,6 +39,8 @@ So the colour mode is a sound base. It is grey, though, not black, and it has no
 - **Title bar and window border** are set through `Form.FormCaptionBackColor`, `FormCaptionTextColor` and `FormBorderColor`, which are stable on .NET 11 and can be set before the window exists. The first version called `DwmSetWindowAttribute` itself; the properties do the same and need no unsafe code. Windows 11 only; what they do on Windows 10 was not checked.
 - **The list's selection** is drawn by the editor (`TreeViewDrawMode.OwnerDrawText`): a fill across the whole row, a bar in the accent at its left edge, and an outline while the list has the keyboard focus. The bar is there because the fill is only 2.1 : 1 against black.
 - **No dialog boxes of the system** for messages: `TaskDialog` would be a white window over a black one. A problem is told on the page instead, which also keeps it readable for as long as the user needs.
+- **The one question, in a window of the editor.** Before changes are lost the editor asks whether to save them; that is `ChangesForm`, a small window in the palette, for the same reason (`HRE.Shots --ask` takes its picture).
+- **Buttons keep their colour.** `ThemedButton` overrides `Button.NotifyDefault` to pass `false` on, so the button Enter presses is not repainted in the accent of Windows: the main button of a page or a dialog is in the editor's teal whether or not it has the focus. The focus still shows as the outline of the button.
 - **No `ListView` groups.** The list stays a `TreeView`.
 - **Pages are standard controls**, not painted text: see [What .NET 11, WinForms and C# 15 offer](Platform-features.md).
 

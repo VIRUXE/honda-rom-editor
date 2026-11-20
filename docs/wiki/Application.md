@@ -1,12 +1,12 @@
 # Application
 
-The editor is one window: a menu bar, a list of what the open ROM holds, a page for what is selected, and a status bar. A table's page is its cells, with what is said of the table under them. It is built to the [[Design principles]]: usable with the keyboard alone and with a screen reader, in plain words, with the technical detail one command away.
+The editor is one window: a menu bar, a list of what the open ROM holds, a page for what is selected, and a status bar. A table's page is its cells, with what is said of the table under them. What is changed can be undone step by step and is saved with the checksum corrected. It is built to the [[Design principles]]: usable with the keyboard alone and with a screen reader, in plain words, with the technical detail one command away.
 
 ![The main window with a fuel map selected: its cells first, in colours from blue for the smallest value to red for the largest, and under them the keys, what the table is and how to read it](https://raw.githubusercontent.com/VIRUXE/honda-rom-editor/main/docs/assets/shell.png)
 
 Run it with `dotnet run --project src/HRE.App`, or start `HondaRomEditor.exe`. A ROM file given on the command line is opened.
 
-> Early version. It opens ROM files and lets you change the values of their tables. It cannot undo a change or save the file yet.
+> Early version. It opens ROM files, lets you change their tables and settings, and saves them with the checksum corrected. It cannot log the engine or work with an emulator yet.
 
 ## Starting
 
@@ -33,7 +33,7 @@ A file that is not opened leaves the window as it was and is explained above the
 | It is far larger than a ROM | "... is too large to be a ROM". Such a file is not read at all |
 | The right size, but no known ROM | "This version does not know the ROM in ...", with a link to the list of ROMs that open. The file's SHA-256 is in the technical details, for a report |
 
-Opening never changes the file.
+Opening never changes the file. When the ROM that is open has changes that are not saved, the program first asks what to do with them (see [Saving](#saving)); a file that would not open anyway is explained without that question.
 
 ## The list
 
@@ -44,7 +44,7 @@ Opening never changes the file.
 | Overview | What kind of ROM the file was recognised as; whether its checksum is correct, with what a checksum is; its size; what it holds, group by group; its add-ons and whether each is on |
 | A group | Its tables and settings, each with its description |
 | A table | Its cells, to read and to change, straight under its name. Under them: the keys that work in the cells; what the table is, in a sentence; what its rows and columns stand for, how many steps each has and from where to where they run; the range of its values; whether the engine computer uses it with VTEC on or off |
-| A setting | Its value with its unit, and from where to where it can be set |
+| A setting | Its value in a field, to read and to change, with its unit beside it. Under it: the keys that work in the field; what the setting is; from where to where it can be set, and in which steps. A value the ROM's description marks as fixed is shown, not offered for change |
 
 ## The cells of a table
 
@@ -68,6 +68,45 @@ The page follows the table: the range under **How to read it** is that of the ce
 
 The grid can also show where the engine is running, by framing the cells around that point, and how many logged readings fell in each cell. Both wait for the datalogger.
 
+## A setting
+
+A setting is a single value, such as a rev limit. Its page starts with the value in a field, which takes the keyboard focus when the page is reached with F6.
+
+| To | Do |
+|---|---|
+| Set it | Type a number and press Enter, or leave the field. Emptying the field leaves the value as it was |
+| Raise or lower it | The up and down arrow keys, or the two small buttons in the field. Each press is one step, the smallest change the setting can take |
+
+As in a table, a point or a comma may be typed as the decimal mark, the number is stored as the nearest step, and a number outside what the setting can be becomes the nearest it can be; the line under the field says so. A screen reader reads the field as the name of the setting, its value, and the smallest and largest it can be.
+
+## Undo and redo
+
+Every change is one step: typing a value into one cell or into fifty, a press of + or -, a paste, a new value of a setting. **Edit > Undo** (Ctrl+Z) takes the last step back and **Edit > Redo** (Ctrl+Y) makes it again; both name the step in the menu ("Undo Change Fuel Map (Low Cam)"). The steps go back to the moment the file was opened, and saving does not end them. What the command did is written on the line under the cells or the field.
+
+While a number is being typed into a cell, Ctrl+Z takes back the typing, not the last step.
+
+## Saving
+
+**File > Save** (Ctrl+S) writes the ROM to its file. **File > Save as...** (Ctrl+Shift+S) asks for a name, writes the ROM there, and goes on working in that file; the first file stays as it is.
+
+- The checksum is corrected on the way, without asking. A file that was opened with a wrong checksum has a correct one after a save.
+- The first time the program replaces a file, it keeps the file as it was next to it, under the same name with `.bak` added (`tune.bin.bak`), and says so above the page. That copy is made once and never overwritten: it stays the file as it was before this program first changed it. To go back to it, rename it.
+- The ROM is written to a temporary file that then takes the place of the ROM file in one step, so a crash or a power cut cannot leave half a ROM.
+- What is being typed into a cell or a field is taken as typed and saved with the rest.
+
+While there are changes that are not saved, the title bar says "(changes not saved)" after the name of the file and the status bar says "Changes not saved".
+
+A file that cannot be written is explained above the page, with the button **Save as...**; the changes stay in the window:
+
+| What is wrong | What the window says |
+|---|---|
+| Another program holds the file | "Another program is using ... Close the file there and save again, or save under another name." |
+| Windows refuses: the file is read-only, or the folder cannot be written to | "Windows did not let this program write ..." |
+| The name is not one Windows accepts | "That is not a file name Windows accepts" |
+| Anything else | "... could not be saved", with what Windows said in the technical details |
+
+Closing the file, opening another one and closing the window ask first when there are changes that are not saved: "Save the changes to ...?", with **Save**, **Don't save** and **Cancel**. Enter saves, Esc goes back to the ROM. When the save does not go through, the ROM stays open. This is the only question the program asks.
+
 ## Technical details
 
 **View > Technical details** (Ctrl+T), or the button at the foot of a page, shows on every page what only matters to someone working on the bytes: the full path, the SHA-256, the identifier of the ROM's description, the platform, the checksum rule, addresses, cell widths, scaling and how the steps of rows and columns are stored. The choice is remembered.
@@ -84,10 +123,13 @@ Every value on a page is a field that can be reached with Tab, selected and copi
 |---|---|
 | Alt, then the underlined letter | Opens a menu; every command has a letter |
 | Ctrl+O, Ctrl+W | Open a file, close it |
+| Ctrl+S, Ctrl+Shift+S | Save; save as another file |
+| Ctrl+Z, Ctrl+Y | Undo, redo |
 | F6, Shift+F6 | Moves between the list and the page |
 | Tab, Shift+Tab | Moves through the fields and buttons of the page, and to the divider, which the arrow keys move |
 | Page Up, Page Down, Ctrl+Home, Ctrl+End | Scroll the page. In the cells of a table they move between cells |
 | Arrow keys, Shift, a number, Enter, Esc, F2, +, -, Ctrl+A, Ctrl+C, Ctrl+V | In the cells of a table: see [The cells of a table](#the-cells-of-a-table) |
+| A number, Enter, the up and down arrow keys | In the field of a setting: see [A setting](#a-setting) |
 | Ctrl+T | Technical details |
 | Ctrl++, Ctrl+-, Ctrl+0 | Text size |
 | F1 | Opens this page |
@@ -99,8 +141,9 @@ While a command is highlighted in a menu, the status bar says what it does.
 | Field | Meaning |
 |---|---|
 | File | The name of the open file; the full path when pointed at. "No file open" otherwise |
+| Changes | "Changes not saved", while there are any |
 | Kind of ROM | What the file was recognised as |
-| Checksum | "Checksum correct", "Checksum wrong" or "No checksum" (some kinds of ROM have none), with a symbol and a colour that say the same. It is the checksum of the file as it was opened: changing a table does not make it wrong |
+| Checksum | "Checksum correct", "Checksum wrong" or "No checksum" (some kinds of ROM have none), with a symbol and a colour that say the same. It is the checksum of the file, as it was opened or last saved: changing a table does not make it wrong, and saving makes it correct |
 
 ## What is remembered
 

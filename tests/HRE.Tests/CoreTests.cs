@@ -160,5 +160,18 @@ public class CoreTests {
         Assert.True(doc.IsDirty);
         Assert.False(doc.CanRedo);
         Assert.Throws<ArgumentOutOfRangeException>(() => doc.Apply("outside", [(0x8000, 1)]));
+
+        // Saving corrects the checksum on the way out: the document takes that in without a step to undo.
+        var changes = 0;
+        doc.Changed += () => changes++;
+        var written = Checksum.Fix(doc.Image);
+        doc.MarkSaved(written);
+        Assert.Equal((false, 1, "b"), (doc.IsDirty, changes, doc.UndoLabel));
+        Assert.Same(written, doc.Image);
+        doc.MarkSaved(new RomImage(written.Bytes));
+        Assert.Equal(1, changes);
+        doc.Undo();
+        Assert.Equal((true, written[^1]), (doc.IsDirty, doc.Image[doc.Image.Length - 1]));
+        Assert.Throws<ArgumentOutOfRangeException>(() => doc.MarkSaved(new RomImage(new byte[4])));
     }
 }

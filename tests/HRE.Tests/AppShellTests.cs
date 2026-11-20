@@ -221,11 +221,15 @@ public class AppShellTests {
     public void ASettingPageShowsTheValueAndWhatItMayBe() {
         var session = MiniSession();
         var page = Details.Param(session.Document, session.Defs[2]);
-        Assert.Equal("9000 rpm", Value(page, "Value"));
-        Assert.Equal("From 3000 to 11000 rpm", Value(page, "Can be set"));
+        // The value comes first, in a field; what it may be follows.
+        Assert.Equal(new PageBlock.Setting(session.Document, session.Defs[2]), page.Blocks[0]);
+        Assert.Equal("3000 to 11000 rpm", Value(page, "Range"));
+        Assert.Equal("1 rpm", Value(page, "Step"));
         Assert.Equal("9000, 16-bit, low byte first", Value(page, "Stored"));
-        var locked = session.Defs[2] with { Kind = new ParamKind.Word(9000, 9000) };
-        Assert.Equal("No: this value is fixed", Value(Details.Param(session.Document, locked), "Can be changed"));
+        var locked = Details.Param(session.Document, session.Defs[2] with { Kind = new ParamKind.Word(9000, 9000) });
+        Assert.DoesNotContain(locked.Blocks, b => b is PageBlock.Setting);
+        Assert.Equal("9000 rpm", Value(locked, "Value"));
+        Assert.Equal("No: this value is fixed", Value(locked, "Can be changed"));
     }
 
     [Fact]
@@ -372,7 +376,7 @@ public class AppShellTests {
         Assert.Equal("Details", form.Page.AccessibleName);
         var menu = form.MainMenuStrip!;
         Assert.Equal("Menu", menu.AccessibleName);
-        Assert.Equal(["&File", "&View", "&Help"], menu.Items.Cast<ToolStripMenuItem>().Select(i => i.Text));
+        Assert.Equal(["&File", "&Edit", "&View", "&Help"], menu.Items.Cast<ToolStripMenuItem>().Select(i => i.Text));
 
         static char AccessKey(ToolStripItem item) => char.ToUpperInvariant(item.Text![item.Text!.IndexOf('&') + 1]);
         foreach (ToolStripMenuItem top in menu.Items) {
@@ -385,6 +389,8 @@ public class AppShellTests {
         var shortcuts = menu.Items.Cast<ToolStripMenuItem>().SelectMany(t => t.DropDownItems.OfType<ToolStripMenuItem>()).Select(i => i.ShortcutKeys).Where(k => k != Keys.None).ToList();
         Assert.Equal(shortcuts.Count, shortcuts.Distinct().Count());
         Assert.Contains(Keys.Control | Keys.O, shortcuts);
+        Assert.Contains(Keys.Control | Keys.S, shortcuts);
+        Assert.Contains(Keys.Control | Keys.Z, shortcuts);
         Assert.Contains(Keys.F1, shortcuts);
     });
 

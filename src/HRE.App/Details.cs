@@ -8,7 +8,7 @@ namespace HRE.App;
 public enum Severity { Info, Good, Warning, Problem }
 
 /// <summary>What a button on a page does.</summary>
-public enum PageCommand { OpenFile, OpenRecent, OpenLink, Dismiss }
+public enum PageCommand { OpenFile, OpenRecent, OpenLink, SaveAs, Dismiss }
 
 /// <summary>A button on a page. <see cref="Argument"/> is the file or the address the command works on.</summary>
 public sealed record PageAction(string Label, PageCommand Command, string? Argument = null, bool Primary = false);
@@ -35,6 +35,9 @@ public abstract record PageBlock {
 
     /// <summary>The cells of a table, to read and to change.</summary>
     public sealed record Grid(RomDocument Document, ParamDef Def) : PageBlock;
+
+    /// <summary>The value of a setting, to read and to change.</summary>
+    public sealed record Setting(RomDocument Document, ParamDef Def) : PageBlock;
 }
 
 /// <summary>What the page view shows: a title, a line under it and blocks.</summary>
@@ -51,8 +54,11 @@ public static class Details {
     /// <summary>What can be done in the cells of a table, said under them: the keys are not to be guessed.</summary>
     public const string GridHelp = "Move with the arrow keys; hold Shift to select more cells. Type a number and press Enter to change the selected cells, or press + and - to raise and lower them a step. Ctrl+C copies, Ctrl+V pastes.";
 
+    /// <summary>What can be done in the field of a setting, said under it.</summary>
+    public const string SettingHelp = "Type a number and press Enter, or press the up and down arrow keys to raise and lower it a step.";
+
     /// <summary>What this version can and cannot do yet.</summary>
-    public const string EarlyVersion = "It opens ROM files and lets you change the values of their tables. It cannot undo a change or save the file yet.";
+    public const string EarlyVersion = "It opens ROM files, lets you change their tables and settings, and saves them with the checksum corrected. It cannot log the engine or work with an emulator yet.";
 
     private static readonly CultureInfo Format = CultureInfo.InvariantCulture;
 
@@ -112,6 +118,40 @@ public static class Details {
             new PageBlock.Actions(actions),
             new PageBlock.Section("About the file that was not opened", technical, Technical: true),
         ];
+    }
+
+    /// <summary>What to show when a file was not saved: what happened, that nothing is lost, and the way on.</summary>
+    public static IReadOnlyList<PageBlock> Problem(SaveResult.Refused refused) {
+        var name = refused.FileName;
+        var (heading, body) = refused.Problem switch {
+            SaveProblem.InUse => ($"Another program is using {name}", "Your changes are still here. Close the file there and save again, or save under another name."),
+            SaveProblem.Denied => ($"Windows did not let this program write {name}", "Your changes are still here. The file may be read-only, or in a folder you cannot change: save under another name or in another folder."),
+            SaveProblem.BadName => ("That is not a file name Windows accepts", "Your changes are still here. Choose another name."),
+            SaveProblem.Unwritable => ($"{name} could not be saved", "Your changes are still here. Windows gave the reason shown under the technical details. Try another name or another folder."),
+            _ => throw new ArgumentOutOfRangeException(nameof(refused)),
+        };
+        var technical = new List<DetailRow> { new("File", refused.Path) };
+        if (refused.SystemMessage is { } message) technical.Add(new("Windows said", message));
+        return [
+            new PageBlock.Notice(Severity.Problem, heading, body),
+            new PageBlock.Actions([new("Save as...", PageCommand.SaveAs, Primary: true), new("Dismiss", PageCommand.Dismiss)]),
+            new PageBlock.Section("About the file that was not saved", technical, Technical: true),
+        ];
+    }
+
+    /// <summary>What to show after the save that put a copy of the file aside: where the file as it was before is.</summary>
+    public static IReadOnlyList<PageBlock> KeptCopy(SaveResult.Saved saved) => [
+        new PageBlock.Notice(Severity.Good, $"Saved {Path.GetFileName(saved.Path)}",
+            $"The file as it was before is kept next to it as {Path.GetFileName(saved.Backup)}. That copy is made once and is not changed again."),
+        new PageBlock.Actions([new("Dismiss", PageCommand.Dismiss)]),
+    ];
+
+    /// <summary>What saving did, in a sentence or two: for a screen reader and for the line under the cells.</summary>
+    public static string Said(SaveResult.Saved saved) {
+        var said = $"Saved {Path.GetFileName(saved.Path)}.";
+        if (saved.ChecksumCorrected) said += " The checksum was corrected.";
+        if (saved.Backup is { } backup) said += $" The file as it was before is kept as {Path.GetFileName(backup)}.";
+        return said;
     }
 
     /// <summary>What to show when the program itself went wrong.</summary>
@@ -191,6 +231,8 @@ public static class Details {
         var blocks = new List<PageBlock>();
         // A table is there to be worked on: its cells come first, and what is said of it follows.
         if (def.Kind is ParamKind.Table) blocks.Add(new PageBlock.Grid(document, def));
+        // So is a setting that can be changed: its value comes first, in a field.
+        else if (ValueEdit.CanChange(def)) blocks.Add(new PageBlock.Setting(document, def));
         if (def.Doc.Length > 0) blocks.Add(new PageBlock.Paragraph(def.Doc));
         var technical = new List<DetailRow>();
         if (def.Symbol is { } symbol) technical.Add(new("Symbol", symbol));
@@ -213,13 +255,21 @@ public static class Details {
                 technical.Add(new("Row steps", AxisStorage(def.RowAxis, table.Rows)));
                 technical.Add(new("Column steps", AxisStorage(def.ColAxis, table.Cols)));
                 break;
-            case ParamKind.Word word:
+            case ParamKind.Word:
                 var raw = ParamAccess.Word(image, def);
-                var value = new List<DetailRow> { new("Value", $"{Plain(def.Display(raw))}{UnitSuffix(def)}") };
-                value.Add(word.Min == word.Max
-                    ? new("Can be changed", "No: this value is fixed")
-                    : new("Can be set", $"From {Plain(def.Display(word.Min))} to {Plain(def.Display(word.Max))}{UnitSuffix(def)}"));
-                blocks.Add(new PageBlock.Section("What it is set to", value));
+                if (ValueEdit.CanChange(def)) {
+                    var (least, most) = ValueEdit.Range(def);
+                    var decimals = ValueEdit.Decimals(def);
+                    blocks.Add(new PageBlock.Section("What it can be set to", [
+                        new("Range", $"{TableEdit.Text(least, decimals)} to {TableEdit.Text(most, decimals)}{UnitSuffix(def)}"),
+                        new("Step", $"{TableEdit.Text(ValueEdit.Step(def), decimals)}{UnitSuffix(def)}"),
+                    ]));
+                } else {
+                    blocks.Add(new PageBlock.Section("What it is set to", [
+                        new("Value", $"{Plain(def.Display(raw))}{UnitSuffix(def)}"),
+                        new("Can be changed", "No: this value is fixed"),
+                    ]));
+                }
                 technical.Add(new("Stored", $"{raw}, 16-bit, {(def.LittleEndian ? "low byte first" : "high byte first")}"));
                 AddScaling(technical, def);
                 break;

@@ -31,9 +31,9 @@ public sealed class AboutForm : Form {
         if (!DarkTheme.HighContrast) (link.LinkColor, link.ActiveLinkColor, link.VisitedLinkColor) = (DarkTheme.Accent, DarkTheme.Text, DarkTheme.Accent);
         link.LinkClicked += (_, _) => Process.Start(new ProcessStartInfo(reportUrl) { UseShellExecute = true })?.Dispose();
 
-        var copy = new Button { Text = "&Copy version details", AutoSize = true, AccessibleDescription = "Copies the versions of the program, .NET and Windows, to paste into a problem report" };
+        var copy = new ThemedButton { Text = "&Copy version details", AutoSize = true, AccessibleDescription = "Copies the versions of the program, .NET and Windows, to paste into a problem report" };
         copy.Click += (_, _) => Clipboard.SetText(details);
-        var close = new Button { Text = "Close", AutoSize = true, DialogResult = DialogResult.OK };
+        var close = new ThemedButton { Text = "Close", AutoSize = true, DialogResult = DialogResult.OK };
         if (!DarkTheme.HighContrast) {
             // The main button in the accent of the program, not of Windows; dark text on it reads best.
             (close.BackColor, close.ForeColor) = (DarkTheme.Accent, Color.Black);

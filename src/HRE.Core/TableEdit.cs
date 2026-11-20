@@ -27,7 +27,11 @@ public static class TableEdit {
             var size = MathF.Abs(def.Scale * ParamAccess.ColumnFactor(image, def, col));
             if (size > 0f) step = MathF.Min(step, size);
         }
-        if (step == float.MaxValue) return 0;
+        return step == float.MaxValue ? 0 : DecimalsFor(step);
+    }
+
+    /// <summary>How many decimals tell two values apart that lie <paramref name="step"/> from each other: three at most.</summary>
+    public static int DecimalsFor(float step) {
         for (var decimals = 0; decimals < MostDecimals; decimals++) {
             var scaled = step * MathF.Pow(10f, decimals);
             if (MathF.Abs(scaled - MathF.Round(scaled)) < 0.001f) return decimals;

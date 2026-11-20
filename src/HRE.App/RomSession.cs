@@ -44,6 +44,31 @@ public abstract record OpenResult {
     }
 }
 
+/// <summary>Why a file was not saved.</summary>
+public enum SaveProblem {
+    InUse,
+    Denied,
+    BadName,
+
+    /// <summary>Windows gave another reason; <see cref="SaveResult.Refused.SystemMessage"/> has its words.</summary>
+    Unwritable,
+}
+
+/// <summary>What came of saving: the file that was written, or the reason there is none.</summary>
+public abstract record SaveResult {
+    /// <summary>
+    /// The ROM is in the file. <see cref="Backup"/> is where the file as it was before went, when
+    /// this save was the first to replace it. <see cref="ChecksumCorrected"/> says that the
+    /// checksum had to be brought in line with the changes.
+    /// </summary>
+    public sealed record Saved(string Path, string? Backup, bool ChecksumCorrected) : SaveResult;
+
+    /// <summary>Nothing was written: the file, if there was one, is as it was, and the changes are still in the document.</summary>
+    public sealed record Refused(SaveProblem Problem, string Path, string? SystemMessage = null) : SaveResult {
+        public string FileName => System.IO.Path.GetFileName(Path.TrimEnd('\\', '/')) is { Length: > 0 } name ? name : Path;
+    }
+}
+
 /// <summary>
 /// A ROM image opened from a file: the document being edited, the definition pack that
 /// recognised it and the parameters that pack finds in it.
@@ -55,6 +80,12 @@ public sealed class RomSession {
     private const int SharingViolation = unchecked((int)0x80070020);
     private const int LockViolation = unchecked((int)0x80070021);
 
+    /// <summary>What <see cref="File.Replace(string, string, string?)"/> reports when the file to replace is held by another program.</summary>
+    private const int UnableToRemoveReplaced = unchecked((int)0x80070497);
+
+    /// <summary>What is put after the name of a file to name the copy kept of it.</summary>
+    public const string BackupSuffix = ".bak";
+
     private RomSession(string path, RomDocument document, DefinitionPack pack, IReadOnlyList<DefinitionPack> otherMatches, IReadOnlyList<ParamDef> defs, IReadOnlyList<string> problems) {
         Path = path;
         Document = document;
@@ -62,12 +93,11 @@ public sealed class RomSession {
         OtherMatches = otherMatches;
         Defs = defs;
         Problems = problems;
-        Checksum = pack.Checksum.Kind == ChecksumKind.None ? ChecksumState.None
-            : Core.Checksum.IsValid(document.Image, pack.Checksum) ? ChecksumState.Valid
-            : ChecksumState.Wrong;
+        Checksum = Judge(document.Image);
     }
 
-    public string Path { get; }
+    /// <summary>The file the ROM was opened from, or the one it was last saved to.</summary>
+    public string Path { get; private set; }
     public RomDocument Document { get; }
     public DefinitionPack Pack { get; }
 
@@ -84,10 +114,60 @@ public sealed class RomSession {
     public string FileName => System.IO.Path.GetFileName(Path);
 
     /// <summary>
-    /// What the checksum said of the file as it was opened. Changing a table does not make the
-    /// file damaged: the checksum is corrected when the ROM is saved.
+    /// What the checksum says of the file, as it was opened or last saved. Changing a table does
+    /// not make the file damaged: the checksum is corrected when the ROM is saved.
     /// </summary>
-    public ChecksumState Checksum { get; }
+    public ChecksumState Checksum { get; private set; }
+
+    /// <summary>
+    /// Writes the ROM to <paramref name="path"/> with its checksum corrected, and makes that the
+    /// file of this session. The bytes go to a temporary file first and take the place of the
+    /// file in one step, so a crash cannot leave half a ROM. The first time a file is replaced,
+    /// the file as it was is kept next to it under the same name with <see cref="BackupSuffix"/>
+    /// added; a copy that is already there is never overwritten, so the oldest state stays.
+    /// Never throws for a file that cannot be written: the result says why.
+    /// </summary>
+    public SaveResult Save(string path) {
+        string full;
+        try {
+            full = System.IO.Path.GetFullPath(path);
+        } catch (Exception e) when (e is ArgumentException or NotSupportedException or PathTooLongException) {
+            return new SaveResult.Refused(SaveProblem.BadName, path);
+        }
+        if (Directory.Exists(full)) return new SaveResult.Refused(SaveProblem.BadName, full);
+
+        var spec = Pack.Checksum;
+        var image = spec.Kind != ChecksumKind.None && spec.End <= Image.Length ? Core.Checksum.Fix(Image, spec) : Image;
+        var temporary = full + ".tmp";
+        string? backup = null;
+        try {
+            File.WriteAllBytes(temporary, image.Bytes);
+            if (File.Exists(full)) {
+                if (!File.Exists(full + BackupSuffix)) backup = full + BackupSuffix;
+                File.Replace(temporary, full, backup, ignoreMetadataErrors: true);
+            } else {
+                File.Move(temporary, full);
+            }
+        } catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException) {
+            try {
+                File.Delete(temporary);
+            } catch (Exception inner) when (inner is IOException or UnauthorizedAccessException) {
+                // The half-written copy stays behind; the ROM file itself was not touched.
+            }
+            var problem = e switch {
+                UnauthorizedAccessException => SaveProblem.Denied,
+                IOException { HResult: SharingViolation or LockViolation or UnableToRemoveReplaced } => SaveProblem.InUse,
+                _ => SaveProblem.Unwritable,
+            };
+            return new SaveResult.Refused(problem, full, e.Message);
+        }
+
+        var corrected = !ReferenceEquals(image, Image);
+        Path = full;
+        Checksum = Judge(image);
+        Document.MarkSaved(image);
+        return new SaveResult.Saved(full, backup, corrected);
+    }
 
     /// <summary>
     /// Reads the file and looks for the pack that describes it. Never throws for a file that is
@@ -126,6 +206,11 @@ public sealed class RomSession {
         var smallest = packs.Count == 0 ? 0 : packs.Min(p => p.RomSize);
         return new OpenResult.Refused(size < smallest ? OpenProblem.TooSmall : OpenProblem.UnknownRom, full, size, image.Sha256());
     }
+
+    private ChecksumState Judge(RomImage image) =>
+        Pack.Checksum.Kind == ChecksumKind.None ? ChecksumState.None
+        : Core.Checksum.IsValid(image, Pack.Checksum) ? ChecksumState.Valid
+        : ChecksumState.Wrong;
 
     /// <summary>The session for an image, when a pack recognises it. Of several packs the strongest match is taken.</summary>
     public static RomSession? Recognise(string path, RomImage image, IEnumerable<DefinitionPack> packs) {

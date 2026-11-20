@@ -24,7 +24,18 @@ public sealed class RomDocument(RomImage image) {
     /// <summary>Whether the image differs from the last saved state.</summary>
     public bool IsDirty => !ReferenceEquals(_done.Count > 0 ? _done.Peek() : null, _saved);
 
-    public void MarkSaved() => _saved = _done.Count > 0 ? _done.Peek() : null;
+    /// <summary>
+    /// Takes the current state as the saved one. <paramref name="written"/> is the image as it
+    /// went into the file, when saving changed it: the checksum is corrected on the way out, and
+    /// that correction is not a step to undo.
+    /// </summary>
+    public void MarkSaved(RomImage? written = null) {
+        _saved = _done.Count > 0 ? _done.Peek() : null;
+        if (written is null || written.Bytes.SequenceEqual(Image.Bytes)) return;
+        ArgumentOutOfRangeException.ThrowIfNotEqual(written.Length, Image.Length);
+        Image = written;
+        Changed?.Invoke();
+    }
 
     /// <summary>
     /// Applies the writes as one undoable step. Writes that do not change a byte are dropped;

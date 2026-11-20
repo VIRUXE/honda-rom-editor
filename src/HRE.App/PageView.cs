@@ -20,7 +20,8 @@ public sealed class PageView : Panel {
     private Font? _glyphFont;
     private DetailPage? _page;
     private TableGrid? _grid;
-    private Label? _gridNote;
+    private SettingBox? _setting;
+    private Label? _note;
     private bool _arranging;
 
     public PageView() {
@@ -37,7 +38,7 @@ public sealed class PageView : Panel {
     /// <summary>The button that shows or hides the technical sections was pressed.</summary>
     public event Action? TechnicalToggled;
 
-    /// <summary>The table on the page has something to tell: what an action did, or why it did nothing.</summary>
+    /// <summary>The table or the setting on the page has something to tell: what an action did, or why it did nothing.</summary>
     public event Action<string>? Announced;
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -52,6 +53,28 @@ public sealed class PageView : Panel {
 
     /// <summary>The cells of the table on the page; null when the page shows no table.</summary>
     public TableGrid? Grid => _grid;
+
+    /// <summary>The field of the setting on the page; null when the page shows no setting that can be changed.</summary>
+    public SettingBox? Setting => _setting;
+
+    /// <summary>
+    /// Writes what an action did on the line under the table or the setting, for those who do not
+    /// hear it announced. A page without either has no such line.
+    /// </summary>
+    public void Say(string text) {
+        if (_note is null) return;
+        _note.Text = text;
+        Arrange();
+    }
+
+    /// <summary>
+    /// Takes what is being typed into a cell or into the setting as its value, as Enter would.
+    /// Called before the document is saved or left, so that nothing typed is lost.
+    /// </summary>
+    public void FinishTyping() {
+        _grid?.EndEdit();
+        _setting?.FinishTyping();
+    }
 
     /// <summary>Whether the technical sections of a page are shown.</summary>
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -85,13 +108,17 @@ public sealed class PageView : Panel {
     /// <summary>Creates the controls of the page anew: after the page, the colours or the font changed.</summary>
     public void Rebuild() {
         SuspendLayout();
-        // The table of the page stays when the new page shows the same one: it has the selection and may have the focus.
-        var kept = Page?.Blocks.OfType<PageBlock.Grid>().FirstOrDefault() is { } shown && _grid is { } grid && ReferenceEquals(grid.Document, shown.Document) && grid.Def == shown.Def ? grid : null;
+        // The table or the setting of the page stays when the new page shows the same one: it has the selection and may have the focus.
+        var keptGrid = Page?.Blocks.OfType<PageBlock.Grid>().FirstOrDefault() is { } table && _grid is { } grid && ReferenceEquals(grid.Document, table.Document) && grid.Def == table.Def ? grid : null;
+        var keptSetting = Page?.Blocks.OfType<PageBlock.Setting>().FirstOrDefault() is { } value && _setting is { } box && ReferenceEquals(box.Document, value.Document) && box.Def == value.Def ? box : null;
+        // What the line under it said last stays too.
+        var said = keptGrid is not null || keptSetting is not null ? _note?.Text ?? "" : "";
         foreach (var old in Controls.Cast<Control>().ToArray()) {
-            if (old != kept) old.Dispose();
+            if (old != keptGrid && old != keptSetting) old.Dispose();
         }
-        _grid = kept;
-        _gridNote = null;
+        _grid = keptGrid;
+        _setting = keptSetting;
+        _note = null;
         _parts.Clear();
         _titleFont?.Dispose();
         _headingFont?.Dispose();
@@ -121,8 +148,11 @@ public sealed class PageView : Panel {
                     case PageBlock.Actions actions:
                         AddActions(actions);
                         break;
-                    case PageBlock.Grid table:
-                        AddGrid(table);
+                    case PageBlock.Grid cells:
+                        AddGrid(cells);
+                        break;
+                    case PageBlock.Setting setting:
+                        AddSetting(setting);
                         break;
                 }
             }
@@ -135,6 +165,7 @@ public sealed class PageView : Panel {
                 });
             }
         }
+        _note?.Text = said;
         var index = 0;
         foreach (Control control in Controls) control.TabIndex = index++;
         ResumeLayout();
@@ -234,8 +265,8 @@ public sealed class PageView : Panel {
         return box;
     }
 
-    private Button NewButton(string text, bool primary) {
-        var button = new Button {
+    private ThemedButton NewButton(string text, bool primary) {
+        var button = new ThemedButton {
             Text = text,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
@@ -294,8 +325,7 @@ public sealed class PageView : Panel {
         if (_grid is null) {
             _grid = new TableGrid(block.Document, block.Def);
             _grid.Announced += text => {
-                _gridNote?.Text = text;
-                Arrange();
+                Say(text);
                 Announced?.Invoke(text);
             };
             _grid.ContentSizeChanged += () => {
@@ -312,7 +342,7 @@ public sealed class PageView : Panel {
         Controls.SetChildIndex(_grid, Controls.Count - 1);
         var grid = _grid;
         // What the last action did, for those who do not hear it announced. It keeps its line, so nothing moves when it speaks.
-        var note = _gridNote = NewLabel("", null, DarkTheme.Text);
+        var note = _note = NewLabel("", null, DarkTheme.Text);
         _parts.Add((x, y, width) => {
             // The table may be wider than the reading column, up to the width of the view.
             var size = grid.FitSize(ClientSize.Width - x - Em(1.25f));
@@ -322,6 +352,34 @@ public sealed class PageView : Panel {
         });
         // Under the cells: nothing but the name of the table stands between the tuner and the table.
         AddText(Details.GridHelp, null, DarkTheme.TextDim, 0.2f);
+    }
+
+    private void AddSetting(PageBlock.Setting block) {
+        if (_setting is null) {
+            _setting = new SettingBox(block.Document, block.Def);
+            _setting.Announced += text => {
+                Say(text);
+                Announced?.Invoke(text);
+            };
+            Controls.Add(_setting);
+        }
+        _setting.ApplyTheme();
+        Controls.SetChildIndex(_setting, Controls.Count - 1);
+        var box = _setting;
+        var unit = block.Def.Unit.Length > 0 ? NewLabel(block.Def.Unit, null, DarkTheme.TextDim) : null;
+        var note = _note = NewLabel("", null, DarkTheme.Text);
+        _parts.Add((x, y, width) => {
+            // Room for the largest value it can take, and for the two small buttons.
+            var widest = TextRenderer.MeasureText(box.Maximum.ToString("F" + box.DecimalPlaces, System.Globalization.CultureInfo.InvariantCulture), Font).Width;
+            box.SetBounds(x, y + Em(0.8f), Math.Min(widest + Em(3f), width), box.PreferredHeight);
+            if (unit is not null) {
+                var size = TextRenderer.MeasureText(unit.Text, Font);
+                unit.SetBounds(box.Right + Em(0.5f), box.Top + (box.Height - size.Height) / 2, size.Width + 8, size.Height);
+            }
+            var noteHeight = Math.Max(Fit(note, x, box.Bottom + Em(0.4f), width), Em(1f));
+            return Em(0.8f) + box.Height + Em(0.4f) + noteHeight;
+        });
+        AddText(Details.SettingHelp, null, DarkTheme.TextDim, 0.2f);
     }
 
     /// <summary>Scrolls the page so that the cell the keyboard is on is in view.</summary>

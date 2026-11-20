@@ -24,8 +24,9 @@
 
 > [!WARNING]
 > **Early development.** The core, the file formats, the build pipeline and the definition packs
-> work, and the application opens ROMs and edits their tables; it cannot undo or save yet. Do not flash
-> anything produced by this code into a car.
+> work, and the application opens ROMs, edits their tables with undo and redo, and saves them with
+> the checksum corrected. Nothing it saves has run in a car yet: do not flash anything produced by
+> this code into one.
 
 <p align="center">
   <img src="docs/assets/shell.png" alt="The main window: the list of tables on the left; on the right the selected fuel map, its cells first in colours from blue for the smallest value to red for the largest, and what the table is under them" width="90%">
@@ -111,7 +112,7 @@ no engine, bench harness or emulator needed.
 | <img alt="Done" src="https://img.shields.io/badge/-done-3cbe50?style=flat-square"> | **M1** Core and formats | ROM image, checksum, parameter model, undo/redo, project file formats |
 | <img alt="Done" src="https://img.shields.io/badge/-done-3cbe50?style=flat-square"> | **M2** Build | Source project → ROM image through the assembler, overlay applied, checksum fixed |
 | <img alt="In progress" src="https://img.shields.io/badge/-in%20progress-d29922?style=flat-square"> | **M3** Definition packs | Open existing `.bin` files; verified patch recipes. The pack format, patch recipes and packs for the factory P28, P30 and P72 firmware, ROMs with CROME's boost add-ons, Uberdata's boost bases, the CROME Gold base and eCtune's base are in; pressure units on the MAP axis of the last two are next |
-| <img alt="In progress" src="https://img.shields.io/badge/-in%20progress-d29922?style=flat-square"> | **M4** App shell | Black-themed window, table grid, 3D surface, undo/redo, save. The window is in, built to the design principles: plain-language pages, keyboard and screen reader use, text size, recent files, drag and drop. So is the table grid: heat colours, typing into one cell or many, raising and lowering by a step, copy and paste, every cell read out by a screen reader. The 3D surface is next |
+| <img alt="In progress" src="https://img.shields.io/badge/-in%20progress-d29922?style=flat-square"> | **M4** App shell | Black-themed window, table grid, 3D surface, undo/redo, save. The window is in, built to the design principles: plain-language pages, keyboard and screen reader use, text size, recent files, drag and drop. So is the table grid: heat colours, typing into one cell or many, raising and lowering by a step, copy and paste, every cell read out by a screen reader. And editing end to end: undo and redo named after the step, single values changed in a field, saving with the checksum corrected through a temporary file, the file as it first was kept as a copy, and a question before changes are lost. The 3D surface is next |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M5** Virtual ECU serial port | Emulated ECU serving its real serial routines over TCP |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M6** Legacy datalog drivers | eCtune-compatible, CROME QD2 / QD3-compatible |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M7** Selectable ROM protocols | Choose the protocol a ROM speaks; the HRE stream protocol |

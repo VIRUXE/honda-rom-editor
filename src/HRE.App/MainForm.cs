@@ -16,6 +16,8 @@ public sealed class MainForm : Form {
     /// <summary>Lets Windows remember the folder of this dialog apart from the other file dialogs to come.</summary>
     private static readonly Guid OpenRomDialog = new("6f6f2a55-7c0b-4a5e-9a57-1d2f7f1c8e01");
 
+    private static readonly Guid SaveRomDialog = new("6f6f2a55-7c0b-4a5e-9a57-1d2f7f1c8e02");
+
     private readonly IReadOnlyList<DefinitionPack> _packs;
     private readonly IReadOnlyList<ProjectException> _packErrors;
     private readonly AppSettings _settings;
@@ -39,10 +41,15 @@ public sealed class MainForm : Form {
     };
 
     private readonly ToolStripStatusLabel _statusFile = new() { Spring = true, TextAlign = ContentAlignment.MiddleLeft };
+    private readonly ToolStripStatusLabel _statusChanges = new() { Padding = new Padding(14, 0, 0, 0), Text = "Changes not saved", ToolTipText = "Save them with File > Save (Ctrl+S)", Available = false };
     private readonly ToolStripStatusLabel _statusKind = new() { Padding = new Padding(14, 0, 0, 0), ToolTipText = "The kind of ROM this file was recognised as" };
     private readonly ToolStripStatusLabel _statusChecksum = new() { Padding = new Padding(14, 0, 0, 0), ImageAlign = ContentAlignment.MiddleLeft, TextImageRelation = TextImageRelation.ImageBeforeText };
     private readonly ToolStripMenuItem _recentMenu = new("&Recent files");
     private readonly ToolStripMenuItem _closeItem;
+    private readonly ToolStripMenuItem _saveItem;
+    private readonly ToolStripMenuItem _saveAsItem;
+    private readonly ToolStripMenuItem _undoItem;
+    private readonly ToolStripMenuItem _redoItem;
     private readonly ToolStripMenuItem _technicalItem;
     private readonly ToolStripMenuItem _largerItem;
     private readonly ToolStripMenuItem _smallerItem;
@@ -64,7 +71,12 @@ public sealed class MainForm : Form {
         MinimumSize = new Size(560, 380);
         AllowDrop = true;
 
-        _closeItem = Item("&Close", Keys.Control | Keys.W, "Close the file that is open", CloseRom);
+        AskAboutChanges = AskInDialog;
+        _closeItem = Item("&Close", Keys.Control | Keys.W, "Close the file that is open", () => CloseRom());
+        _saveItem = Item("&Save", Keys.Control | Keys.S, "Save the changes to the file, with the checksum corrected", () => Save());
+        _saveAsItem = Item("Save &as...", Keys.Control | Keys.Shift | Keys.S, "Save the ROM as another file, and go on working in that one", () => SaveAs());
+        _undoItem = Item("&Undo", Keys.Control | Keys.Z, "Take back the last change", Undo);
+        _redoItem = Item("&Redo", Keys.Control | Keys.Y, "Make the change again that was taken back", Redo);
         _technicalItem = Item("&Technical details", Keys.Control | Keys.T, "Show or hide addresses, hashes and other details of how things are stored", ToggleTechnical);
         _largerItem = Item("&Larger text", Keys.Control | Keys.Oemplus, "Make the text of the window larger", () => SetZoom(_settings.TextZoom + ZoomStep));
         _largerItem.ShortcutKeyDisplayString = "Ctrl++";
@@ -79,7 +91,11 @@ public sealed class MainForm : Form {
             _recentMenu,
             _closeItem,
             new ToolStripSeparator(),
+            _saveItem,
+            _saveAsItem,
+            new ToolStripSeparator(),
             Item("E&xit", Keys.Alt | Keys.F4, "Close the program", Close)));
+        _menu.Items.Add(TopMenu("&Edit", _undoItem, _redoItem));
         _menu.Items.Add(TopMenu("&View", _technicalItem, new ToolStripSeparator(), _largerItem, _smallerItem, normalItem));
         _menu.Items.Add(TopMenu("&Help",
             Item("&Getting started", Keys.F1, "Read how the window works, in the browser", () => OpenLink(GettingStartedUrl)),
@@ -87,7 +103,7 @@ public sealed class MainForm : Form {
             Item("&Report a problem", Keys.None, "Tell the makers what went wrong, in the browser", () => OpenLink(ReportUrl)),
             new ToolStripSeparator(),
             Item($"&About {AppName}", Keys.None, "See the version of the program", ShowAbout)));
-        _status.Items.AddRange([_statusFile, _statusKind, _statusChecksum]);
+        _status.Items.AddRange([_statusFile, _statusChanges, _statusKind, _statusChecksum]);
 
         _split.Panel1.Padding = new Padding(0, 8, 0, 0);
         _split.Panel1.Controls.Add(_tree);
@@ -130,18 +146,30 @@ public sealed class MainForm : Form {
 
     internal TreeView Tree => _tree;
     internal PageView Page => _page;
-    internal IEnumerable<string> StatusTexts => new[] { _statusFile, _statusKind, _statusChecksum }.Where(l => l.Available).Select(l => l.Text ?? "");
+    internal IEnumerable<string> StatusTexts => new[] { _statusFile, _statusChanges, _statusKind, _statusChecksum }.Where(l => l.Available).Select(l => l.Text ?? "");
+
+    /// <summary>
+    /// Asks what to do with the changes to the named file, which are not saved, before its ROM is
+    /// left. A dialog asks the user; a test answers in its place.
+    /// </summary>
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+    internal Func<string, ChangesAnswer> AskAboutChanges { get; set; }
 
     /// <summary>
     /// Opens a ROM file, replacing the one that is open. A file that is missing, unreadable or
-    /// not a ROM this version knows is explained at the top of the page, and what was open stays open.
+    /// not a ROM this version knows is explained at the top of the page, and what was open stays
+    /// open. So it does when the open ROM has changes and the user chooses to go back to them.
     /// </summary>
     public void OpenRom(string path) {
         switch (RomSession.Open(path, _packs)) {
             case OpenResult.Opened opened:
+                if (!LeaveRom()) break;
                 Session = opened.Session;
-                // What a page says of a table follows the table as it is changed.
-                Session.Document.Changed += () => _page.Revise(BuildPage());
+                // What a page says of a table follows the table as it is changed; so do the commands that undo and save.
+                Session.Document.Changed += () => {
+                    _page.Revise(BuildPage());
+                    ShowEditState();
+                };
                 _problem = null;
                 _settings.Remember(Session.Path);
                 ShowSession();
@@ -159,10 +187,80 @@ public sealed class MainForm : Form {
         }
     }
 
-    public void CloseRom() {
+    /// <summary>Closes the open ROM. Returns false when it has changes and the user chose to go back to them.</summary>
+    public bool CloseRom() {
+        if (!LeaveRom()) return false;
         Session = null;
         _problem = null;
         ShowSession();
+        return true;
+    }
+
+    /// <summary>Saves the open ROM to its file. Returns false when nothing was saved; the page then says why.</summary>
+    public bool Save() => Session is { } session && SaveTo(session.Path);
+
+    /// <summary>Asks for a file name and saves the open ROM there. Returns false when nothing was saved.</summary>
+    public bool SaveAs() {
+        if (Session is not { } session) return false;
+        using var dialog = new SaveFileDialog {
+            Title = "Save the ROM as",
+            Filter = "ROM files (*.bin)|*.bin|All files (*.*)|*.*",
+            DefaultExt = "bin",
+            AddExtension = true,
+            OverwritePrompt = true,
+            InitialDirectory = Path.GetDirectoryName(session.Path),
+            FileName = session.FileName,
+            ClientGuid = SaveRomDialog,
+        };
+        return dialog.ShowDialog(this) == DialogResult.OK && SaveTo(dialog.FileName);
+    }
+
+    /// <summary>Takes back the last change.</summary>
+    public void Undo() {
+        // While a number is being typed into a cell, the key belongs to the typing.
+        if (_page.Grid is { IsCurrentCellInEditMode: true, EditingControl: TextBox typing }) {
+            typing.Undo();
+            return;
+        }
+        if (Session?.Document is not { UndoLabel: { } label } document) return;
+        document.Undo();
+        Tell($"Undone: {label}");
+    }
+
+    /// <summary>Makes the change again that was taken back last.</summary>
+    public void Redo() {
+        if (_page.Grid is { IsCurrentCellInEditMode: true }) return;
+        if (Session?.Document is not { RedoLabel: { } label } document) return;
+        document.Redo();
+        Tell($"Redone: {label}");
+    }
+
+    /// <summary>
+    /// Saves the open ROM to the given file, which becomes the file of the window. A file that
+    /// cannot be written is explained at the top of the page, and the changes stay.
+    /// </summary>
+    internal bool SaveTo(string path) {
+        if (Session is not { } session) return false;
+        _page.FinishTyping();
+        switch (session.Save(path)) {
+            case SaveResult.Saved saved:
+                _settings.Remember(saved.Path);
+                _problem = saved.Backup is null ? null : Details.KeptCopy(saved);
+                ShowRecentFiles();
+                ShowEditState();
+                ShowStatus();
+                _page.Revise(BuildPage());
+                Tell(Details.Said(saved));
+                return true;
+            case SaveResult.Refused refused:
+                _problem = Details.Problem(refused);
+                ShowPage();
+                _page.FocusFirst();
+                if (_problem[0] is PageBlock.Notice notice) Announce($"{notice.Heading}. {notice.Body}");
+                return false;
+            default:
+                return false;
+        }
     }
 
     /// <summary>Selects a table or a setting in the list by name. Returns false when the open ROM has none of that name.</summary>
@@ -214,6 +312,10 @@ public sealed class MainForm : Form {
     protected override void OnFormClosing(FormClosingEventArgs e) {
         base.OnFormClosing(e);
         if (e.Cancel) return;
+        if (!LeaveRom()) {
+            e.Cancel = true;
+            return;
+        }
         var bounds = WindowState == FormWindowState.Normal ? Bounds : RestoreBounds;
         _settings.Window = new WindowPlace(bounds.X, bounds.Y, bounds.Width, bounds.Height, WindowState == FormWindowState.Maximized);
         if (!_split.Panel1Collapsed) _settings.ListWidth = (int)(_split.SplitterDistance * 96 / DeviceDpi / _settings.TextZoom);
@@ -297,6 +399,9 @@ public sealed class MainForm : Form {
             case PageCommand.OpenLink:
                 OpenLink(action.Argument!);
                 break;
+            case PageCommand.SaveAs:
+                SaveAs();
+                break;
             case PageCommand.Dismiss:
                 _problem = null;
                 ShowPage();
@@ -338,11 +443,48 @@ public sealed class MainForm : Form {
         }
         // With no file open there is nothing to list: the page has the whole window.
         _split.Panel1Collapsed = Session is null;
-        _closeItem.Enabled = Session is not null;
-        Text = Session is null ? AppName : $"{Session.FileName} - {AppName}";
+        ShowEditState();
         ShowRecentFiles();
         ShowStatus();
         ShowPage();
+    }
+
+    /// <summary>
+    /// Whether the open ROM may be left: it has no changes, or the user saved them or gave them
+    /// up. What is being typed counts as a change.
+    /// </summary>
+    private bool LeaveRom() {
+        _page.FinishTyping();
+        if (Session is not { Document.IsDirty: true } session) return true;
+        return AskAboutChanges(session.FileName) switch {
+            ChangesAnswer.Save => Save(),
+            ChangesAnswer.Discard => true,
+            _ => false,
+        };
+    }
+
+    private ChangesAnswer AskInDialog(string fileName) {
+        using var ask = new ChangesForm(fileName, _barFont ?? Font);
+        ask.ShowDialog(this);
+        return ask.Answer;
+    }
+
+    /// <summary>
+    /// Brings what depends on the changes in line with them: the commands that undo, redo and
+    /// save, the title and the status bar.
+    /// </summary>
+    private void ShowEditState() {
+        var document = Session?.Document;
+        // A name with an ampersand in it must not make an access key.
+        static string Named(string command, string? step) => step is null ? command : $"{command} {step.Replace("&", "&&")}";
+        _undoItem.Text = Named("&Undo", document?.UndoLabel);
+        _redoItem.Text = Named("&Redo", document?.RedoLabel);
+        _undoItem.Enabled = document?.CanUndo == true;
+        _redoItem.Enabled = document?.CanRedo == true;
+        _closeItem.Enabled = _saveItem.Enabled = _saveAsItem.Enabled = Session is not null;
+        var changed = document?.IsDirty == true;
+        _statusChanges.Available = changed;
+        Text = Session is null ? AppName : $"{Session.FileName}{(changed ? " (changes not saved)" : "")} - {AppName}";
     }
 
     /// <summary>Shows the page of what is selected, under the problem to report when there is one.</summary>
@@ -383,10 +525,11 @@ public sealed class MainForm : Form {
         _statusFile.AccessibleName = $"File: {session.Path}";
         _statusKind.Text = session.Pack.Name;
         _statusKind.ForeColor = DarkTheme.Text;
+        _statusChanges.ForeColor = DarkTheme.SeverityColor(Severity.Warning);
         _statusKind.AccessibleName = $"Kind of ROM: {session.Pack.Name}";
 
         var (severity, tip) = session.Checksum switch {
-            ChecksumState.Valid => (Severity.Good, "The self-check built into the ROM is correct: the file is intact"),
+            ChecksumState.Valid => (Severity.Good, "The self-check built into the ROM is correct: the file is intact. It is corrected each time the ROM is saved"),
             ChecksumState.Wrong => (Severity.Warning, "The self-check built into the ROM is wrong: the file may be damaged"),
             ChecksumState.None => (Severity.Info, "This kind of ROM has no self-check"),
             _ => throw new ArgumentOutOfRangeException(nameof(session)),
@@ -450,6 +593,12 @@ public sealed class MainForm : Form {
     /// <summary>Tells a screen reader what just happened; it is also what a sighted user reads on the page.</summary>
     private void Announce(string text) {
         if (IsHandleCreated) AccessibilityObject.RaiseAutomationNotification(AutomationNotificationKind.ActionCompleted, AutomationNotificationProcessing.MostRecent, text);
+    }
+
+    /// <summary>Tells what a command did: to a screen reader, and on the line under the table or the setting.</summary>
+    private void Tell(string text) {
+        _page.Say(text);
+        Announce(text);
     }
 
     /// <summary>The line down the middle of the divider, which is wide enough to grab.</summary>

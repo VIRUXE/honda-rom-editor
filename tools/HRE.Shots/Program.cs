@@ -13,7 +13,8 @@ namespace HRE.Shots;
 /// of the table, which scrolls it into view; <c>--trace=row,col</c> shows the engine running at
 /// that position between cells, with made-up counts of readings around it; <c>--size=1180x1300</c>
 /// sets the size of the window, which may be taller than the screen; <c>--hold=seconds</c>
-/// keeps the window up after the picture, to read what it gives a screen reader from another process.
+/// keeps the window up after the picture, to read what it gives a screen reader from another process;
+/// <c>--ask</c> takes the picture of the question about changes that are not saved, in place of the main window.
 /// </summary>
 internal static partial class Program {
     private const int ShowNoActivate = 4;
@@ -26,10 +27,12 @@ internal static partial class Program {
         (int Row, int Col)? cell = null;
         (float Row, float Col)? trace = null;
         var hold = 0.0;
+        var ask = false;
         Size? size = null;
         static float[] Pair(string arg) => [.. arg[(arg.IndexOf('=') + 1)..].Split(',').Select(v => float.Parse(v, System.Globalization.CultureInfo.InvariantCulture))];
         foreach (var arg in all) {
             if (arg == "--technical") settings.ShowTechnical = true;
+            else if (arg == "--ask") ask = true;
             else if (arg.StartsWith("--zoom=", StringComparison.Ordinal)) settings.TextZoom = double.Parse(arg["--zoom=".Length..], System.Globalization.CultureInfo.InvariantCulture);
             else if (arg.StartsWith("--cell=", StringComparison.Ordinal)) cell = ((int)Pair(arg)[0], (int)Pair(arg)[1]);
             else if (arg.StartsWith("--trace=", StringComparison.Ordinal)) trace = (Pair(arg)[0], Pair(arg)[1]);
@@ -38,7 +41,7 @@ internal static partial class Program {
             else args.Add(arg);
         }
         if (args.Count is < 1 or > 3) {
-            Console.Error.WriteLine("usage: HRE.Shots [--technical] [--zoom=1.5] [--cell=row,col] [--trace=row,col] [--size=WxH] [--hold=seconds] out.png [rom.bin [parameter name]]");
+            Console.Error.WriteLine("usage: HRE.Shots [--technical] [--zoom=1.5] [--cell=row,col] [--trace=row,col] [--size=WxH] [--hold=seconds] [--ask] out.png [rom.bin [parameter name]]");
             return 2;
         }
         AppStartup.Configure();
@@ -54,7 +57,9 @@ internal static partial class Program {
             return 1;
         }
 
-        ShowWindow(form.Handle, ShowNoActivate);
+        using var question = new ChangesForm(form.Session?.FileName ?? "tune.bin", DarkTheme.BarFont(form.Font, settings.TextZoom)) { StartPosition = FormStartPosition.Manual, Location = new Point(40, 40) };
+        var window = ask ? (Form)question : form;
+        ShowWindow(window.Handle, ShowNoActivate);
         Settle();
         if (form.Page.Grid is { } grid) {
             if (cell is { } at) grid.CurrentCell = grid[at.Col, at.Row];
@@ -68,11 +73,11 @@ internal static partial class Program {
             }
             Settle();
         }
-        GetWindowRect(form.Handle, out var bounds);
+        GetWindowRect(window.Handle, out var bounds);
         using var bitmap = new Bitmap(bounds.Right - bounds.Left, bounds.Bottom - bounds.Top, PixelFormat.Format32bppArgb);
         using (var g = Graphics.FromImage(bitmap)) {
             var dc = g.GetHdc();
-            var printed = PrintWindow(form.Handle, dc, RenderFullContent);
+            var printed = PrintWindow(window.Handle, dc, RenderFullContent);
             g.ReleaseHdc(dc);
             if (!printed) {
                 Console.Error.WriteLine("the window could not be read back");
