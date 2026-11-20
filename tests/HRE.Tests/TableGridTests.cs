@@ -274,14 +274,15 @@ public class TableGridTests {
         using var view = new PageView { Size = new Size(700, 500) };
         view.Page = Details.Param(session.Document, session.Defs[0]);
         var grid = Assert.IsType<TableGrid>(view.Grid);
-        Assert.Contains("Values, in raw", view.Controls.OfType<Label>().Select(l => l.Text));
         var help = view.Controls.OfType<Label>().Single(l => l.Text == Details.GridHelp);
-        Assert.True(help.Bottom <= grid.Top, "what can be done with the cells is said above them");
+        // The cells come first: only the name of the table and its group stand above them.
+        Assert.True(help.Top >= grid.Bottom, "what can be done with the cells is said under them");
+        Assert.All(view.Controls.Cast<Control>().Where(c => c != grid && c.Top < grid.Top), c => Assert.True(c.Text is "Fuel Map" or "Fuel", c.Text));
         Assert.Equal(grid.ContentSize, grid.Size);
 
-        // In the tab order it stands where it is on the page: after the rows above it, before the button under it.
+        // In the tab order it stands where it is on the page: before the rows and the button under it.
         var order = view.Controls.Cast<Control>().OrderBy(c => c.TabIndex).ToList();
-        Assert.True(order.IndexOf(grid) > order.FindIndex(c => c is TextBox { AccessibleName: "Values" }));
+        Assert.True(order.IndexOf(grid) < order.FindIndex(c => c is TextBox { AccessibleName: "Values" }));
         Assert.True(order.IndexOf(grid) < order.FindIndex(c => c is Button));
         Assert.All(order.Zip(order.Skip(1)), pair => Assert.True(pair.Second.Top >= pair.First.Top, $"`{pair.Second.Text}` is above `{pair.First.Text}`"));
 

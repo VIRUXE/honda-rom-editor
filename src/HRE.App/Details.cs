@@ -33,8 +33,8 @@ public abstract record PageBlock {
     /// <summary>Buttons, under an optional heading.</summary>
     public sealed record Actions(IReadOnlyList<PageAction> Items, string? Heading = null) : PageBlock;
 
-    /// <summary>The cells of a table, to read and to change, under a heading.</summary>
-    public sealed record Grid(string Heading, RomDocument Document, ParamDef Def) : PageBlock;
+    /// <summary>The cells of a table, to read and to change.</summary>
+    public sealed record Grid(RomDocument Document, ParamDef Def) : PageBlock;
 }
 
 /// <summary>What the page view shows: a title, a line under it and blocks.</summary>
@@ -48,7 +48,7 @@ public sealed record DetailPage(string Title, string Subtitle, IReadOnlyList<Pag
 public static class Details {
     public const string SupportedRomsUrl = "https://github.com/VIRUXE/honda-rom-editor/wiki/Supported-ROMs";
 
-    /// <summary>What can be done in the cells of a table, said above them: the keys are not to be guessed.</summary>
+    /// <summary>What can be done in the cells of a table, said under them: the keys are not to be guessed.</summary>
     public const string GridHelp = "Move with the arrow keys; hold Shift to select more cells. Type a number and press Enter to change the selected cells, or press + and - to raise and lower them a step. Ctrl+C copies, Ctrl+V pastes.";
 
     /// <summary>What this version can and cannot do yet.</summary>
@@ -189,6 +189,8 @@ public static class Details {
     public static DetailPage Param(RomDocument document, ParamDef def) {
         var image = document.Image;
         var blocks = new List<PageBlock>();
+        // A table is there to be worked on: its cells come first, and what is said of it follows.
+        if (def.Kind is ParamKind.Table) blocks.Add(new PageBlock.Grid(document, def));
         if (def.Doc.Length > 0) blocks.Add(new PageBlock.Paragraph(def.Doc));
         var technical = new List<DetailRow>();
         if (def.Symbol is { } symbol) technical.Add(new("Symbol", symbol));
@@ -203,7 +205,6 @@ public static class Details {
                 };
                 if (def.Vtec is { } vtec) reading.Add(new("Used", vtec ? "While VTEC is on" : "While VTEC is off"));
                 blocks.Add(new PageBlock.Section("How to read it", reading));
-                blocks.Add(new PageBlock.Grid(def.Unit.Length > 0 ? $"Values, in {def.Unit}" : "Values", document, def));
                 technical.Add(new("Cells", $"{table.Rows} x {table.Cols}, {CellName(def.Cell)}"));
                 AddScaling(technical, def);
                 if (def.Multiplier is { } m) {

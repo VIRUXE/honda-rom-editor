@@ -195,7 +195,9 @@ public class AppShellTests {
         var described = session.Defs[0] with { Doc = "How much fuel the engine gets." };
         var page = Details.Param(session.Document, described);
         Assert.Equal(("Fuel Map", "Fuel"), (page.Title, page.Subtitle));
-        Assert.Equal(new PageBlock.Paragraph("How much fuel the engine gets."), page.Blocks[0]);
+        // The cells come first; what is said of the table follows them.
+        Assert.IsType<PageBlock.Grid>(page.Blocks[0]);
+        Assert.Equal(new PageBlock.Paragraph("How much fuel the engine gets."), page.Blocks[1]);
         Assert.Equal("RPM: 2 steps, from 10 to 30", Value(page, "Rows"));
         Assert.Equal("MAP: 3 steps, from 30 to 90", Value(page, "Columns"));
         // Cells 1..6, the columns multiplied by 1, 2 and 4.
@@ -208,7 +210,7 @@ public class AppShellTests {
         Assert.Equal("Bytes, each the step from the one before, 0x00F0 to 0x00F1 (2 bytes)", Value(page, "Row steps"));
 
         var wide = Details.Param(session.Document, session.Defs[1]);
-        Assert.IsNotType<PageBlock.Paragraph>(wide.Blocks[0]);
+        Assert.IsNotType<PageBlock.Paragraph>(wide.Blocks[1]);
         Assert.Equal("2 x 2, 16-bit, low byte first", Value(wide, "Cells"));
         Assert.Equal("stored x 0.5", Value(wide, "Shown as"));
         Assert.Equal("Not in the ROM: fixed by the description", Value(wide, "Column steps"));

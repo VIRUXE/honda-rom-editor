@@ -36,6 +36,7 @@ Someone tuning the engine computer of a Honda, from a file read from its chip. M
 
 ## Behaviour
 
+- What is worked on comes first on its page. A table's page starts with its cells, straight under its name; the keys, the description and the ranges stand under them, where they are read once and are not in the way afterwards.
 - The next step is always on the screen as a button, with the keyboard focus on it at start. Nothing important is only in a menu.
 - Opening a file never changes it. A file that cannot be opened leaves what was open as it was, and the explanation appears above the page.
 - A file is recognised by the program; the user is never asked what kind of ROM it is.

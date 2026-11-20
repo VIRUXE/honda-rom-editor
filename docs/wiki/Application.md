@@ -1,8 +1,8 @@
 # Application
 
-The editor is one window: a menu bar, a list of what the open ROM holds, a page that describes what is selected, and a status bar. It is built to the [[Design principles]]: usable with the keyboard alone and with a screen reader, in plain words, with the technical detail one command away.
+The editor is one window: a menu bar, a list of what the open ROM holds, a page for what is selected, and a status bar. A table's page is its cells, with what is said of the table under them. It is built to the [[Design principles]]: usable with the keyboard alone and with a screen reader, in plain words, with the technical detail one command away.
 
-![The main window with a fuel map selected: what the table is, how to read it, and its cells in colours from blue for the smallest value to red for the largest](https://raw.githubusercontent.com/VIRUXE/honda-rom-editor/main/docs/assets/shell.png)
+![The main window with a fuel map selected: its cells first, in colours from blue for the smallest value to red for the largest, and under them the keys, what the table is and how to read it](https://raw.githubusercontent.com/VIRUXE/honda-rom-editor/main/docs/assets/shell.png)
 
 Run it with `dotnet run --project src/HRE.App`, or start `HondaRomEditor.exe`. A ROM file given on the command line is opened.
 
@@ -43,12 +43,12 @@ Opening never changes the file.
 |---|---|
 | Overview | What kind of ROM the file was recognised as; whether its checksum is correct, with what a checksum is; its size; what it holds, group by group; its add-ons and whether each is on |
 | A group | Its tables and settings, each with its description |
-| A table | What the table is, in a sentence; what its rows and columns stand for, how many steps each has and from where to where they run; the range of its values; whether the engine computer uses it with VTEC on or off; and its cells, to read and to change |
+| A table | Its cells, to read and to change, straight under its name. Under them: the keys that work in the cells; what the table is, in a sentence; what its rows and columns stand for, how many steps each has and from where to where they run; the range of its values; whether the engine computer uses it with VTEC on or off |
 | A setting | Its value with its unit, and from where to where it can be set |
 
 ## The cells of a table
 
-Under **Values** a table shows its cells: one row for each step of the rows (engine speed, for the fuel and ignition maps), one column for each step of the columns (engine load). The steps are written along the top and down the left side. Each cell has a colour between blue, for the smallest value of the table, and red, for the largest, so that the shape of a table shows at a glance; the number is always there too.
+A table's page starts with its cells, and they take the keyboard focus when the page is reached with F6: one row for each step of the rows (engine speed, for the fuel and ignition maps), one column for each step of the columns (engine load). The steps are written along the top and down the left side. Each cell has a colour between blue, for the smallest value of the table, and red, for the largest, so that the shape of a table shows at a glance; the number is always there too.
 
 | To | Do |
 |---|---|

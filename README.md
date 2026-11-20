@@ -28,7 +28,7 @@
 > anything produced by this code into a car.
 
 <p align="center">
-  <img src="docs/assets/shell.png" alt="The main window: the list of tables on the left; on the right the selected fuel map, described in plain words, with its cells in colours from blue for the smallest value to red for the largest" width="90%">
+  <img src="docs/assets/shell.png" alt="The main window: the list of tables on the left; on the right the selected fuel map, its cells first in colours from blue for the smallest value to red for the largest, and what the table is under them" width="90%">
 </p>
 
 ---

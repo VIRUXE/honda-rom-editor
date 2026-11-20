@@ -291,9 +291,6 @@ public sealed class PageView : Panel {
     }
 
     private void AddGrid(PageBlock.Grid block) {
-        AddHeading(block.Heading);
-        // Above the cells: a table is taller than most windows, and what can be done with it is not to be scrolled for.
-        AddText(Details.GridHelp, null, DarkTheme.TextDim, 0.2f);
         if (_grid is null) {
             _grid = new TableGrid(block.Document, block.Def);
             _grid.Announced += text => {
@@ -319,10 +316,12 @@ public sealed class PageView : Panel {
         _parts.Add((x, y, width) => {
             // The table may be wider than the reading column, up to the width of the view.
             var size = grid.FitSize(ClientSize.Width - x - Em(1.25f));
-            grid.SetBounds(x, y + Em(0.5f), size.Width, size.Height);
-            var noteHeight = Math.Max(Fit(note, x, y + Em(0.5f) + size.Height + Em(0.4f), width), Em(1f));
-            return Em(0.5f) + size.Height + Em(0.4f) + noteHeight;
+            grid.SetBounds(x, y + Em(0.8f), size.Width, size.Height);
+            var noteHeight = Math.Max(Fit(note, x, y + Em(0.8f) + size.Height + Em(0.4f), width), Em(1f));
+            return Em(0.8f) + size.Height + Em(0.4f) + noteHeight;
         });
+        // Under the cells: nothing but the name of the table stands between the tuner and the table.
+        AddText(Details.GridHelp, null, DarkTheme.TextDim, 0.2f);
     }
 
     /// <summary>Scrolls the page so that the cell the keyboard is on is in view.</summary>
