@@ -300,7 +300,7 @@ public class PackCorpusTests {
 
     /// <summary>
     /// One pack reads every size and position CROME's Boost Tools+ gives the maps of a P30-type
-    /// ROM: 16 to 24 columns, in seven different places among the tunes of the corpus.
+    /// ROM: 16 to 24 columns, in six different places among the tunes of the corpus.
     /// </summary>
     [WorkspaceFact(Manifest)]
     public void OnePackReadsEveryEnlargedLayout() {
