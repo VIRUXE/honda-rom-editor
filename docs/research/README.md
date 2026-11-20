@@ -7,6 +7,7 @@ What was found out while building the editor, written down so that it can be che
 | [Corpus](Corpus.md) | The ROM images everything is checked against: where they come from, what they are, what the odd files taught |
 | [OBD1 firmware types](OBD1-firmware-types.md) | The three kinds of factory firmware, how the main maps are looked up, how the axes are encoded, where the checksum is |
 | [ROMs changed by tuning programs](Tuning-program-ROMs.md) | What CROME, Uberdata and eCtune leave in a ROM, and how each is recognised |
+| [The black theme](Dark-theme.md) | What the dark colour mode of WinForms gives on .NET 11, what it does not, and what the editor draws itself |
 
 ## Rules for these pages
 
@@ -27,5 +28,7 @@ The scripts in [`tools/research`](../../tools/research) read the corpus (see `wo
 | `expected_packs.py` | Rewrites the list of which pack each corpus image is (`tests/fixtures/corpus/expected-packs.tsv`); `--near` also lists near misses |
 | `fetch_hondabase.py`, `list_archives.py` | Fetch files of the hondabase archive with their checksums verified; list what archives hold |
 | `wiki_hunks.py` | The text replacements that bring a wiki page up to date |
+
+[`tools/HRE.Shots`](../../tools/HRE.Shots) saves a picture of the editor's main window without bringing it to the front: `dotnet run --project tools/HRE.Shots -- out.png [rom.bin [parameter name]]`.
 
 Listings are made with the `rasm66k` disassembler: `rasm66k dasm <rom> <listing>`.

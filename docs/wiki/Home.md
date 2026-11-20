@@ -2,6 +2,7 @@
 
 A ROM editor and datalogger for Honda OBD0 and OBD1 engine computers, written in C# (.NET 11, WinForms, black theme only).
 
+- [[Application]] — the window: menus, parameter tree, detail view, status bar
 - [[Architecture]]
 - [[ROM approach]] — source projects and definition packs
 - [[Definition packs]] — the pack file format

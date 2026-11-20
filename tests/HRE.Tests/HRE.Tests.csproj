@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net11.0</TargetFramework>
+    <TargetFramework>net11.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -20,13 +20,13 @@
 
   <ItemGroup>
     <None Include="..\fixtures\**\*" Link="fixtures\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\packs\**\*" Link="packs\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\HRE.Core\HRE.Core.csproj" />
     <ProjectReference Include="..\..\src\HRE.Definitions\HRE.Definitions.csproj" />
     <ProjectReference Include="..\..\src\HRE.Build\HRE.Build.csproj" />
+    <ProjectReference Include="..\..\src\HRE.App\HRE.App.csproj" />
   </ItemGroup>
 
 </Project>
