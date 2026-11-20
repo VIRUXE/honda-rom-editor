@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using HRE.Core;
 
 namespace HRE.App;
 
@@ -10,6 +11,11 @@ namespace HRE.App;
 /// scaling and the user's text size.
 /// </summary>
 public sealed class PageView : Panel {
+    /// <summary>The least width at which a picture of a table can be read, and its least height, in lines of text.</summary>
+    private const float ChartWidth = 18f;
+
+    private const float ChartHeight = 13f;
+
     private const TextFormatFlags Wrapped = TextFormatFlags.WordBreak | TextFormatFlags.TextBoxControl | TextFormatFlags.NoPrefix;
 
     /// <summary>Each part places its controls at (x, y) in the given width and returns the height it took.</summary>
@@ -20,6 +26,8 @@ public sealed class PageView : Panel {
     private Font? _glyphFont;
     private DetailPage? _page;
     private TableGrid? _grid;
+    private TableGraph? _graph;
+    private TableSurface? _surface;
     private SettingBox? _setting;
     private Label? _note;
     private bool _arranging;
@@ -53,6 +61,12 @@ public sealed class PageView : Panel {
 
     /// <summary>The cells of the table on the page; null when the page shows no table.</summary>
     public TableGrid? Grid => _grid;
+
+    /// <summary>The graph of the table on the page; null when the page shows no table.</summary>
+    public TableGraph? Graph => _graph;
+
+    /// <summary>The surface of the table on the page; null when the page shows no table, or one of a single row or column.</summary>
+    public TableSurface? Surface => _surface;
 
     /// <summary>The field of the setting on the page; null when the page shows no setting that can be changed.</summary>
     public SettingBox? Setting => _setting;
@@ -113,8 +127,10 @@ public sealed class PageView : Panel {
         var keptSetting = Page?.Blocks.OfType<PageBlock.Setting>().FirstOrDefault() is { } value && _setting is { } box && ReferenceEquals(box.Document, value.Document) && box.Def == value.Def ? box : null;
         // What the line under it said last stays too.
         var said = keptGrid is not null || keptSetting is not null ? _note?.Text ?? "" : "";
+        // The pictures of a table stay with its cells: the surface is as it was turned.
+        if (keptGrid is null) (_graph, _surface) = (null, null);
         foreach (var old in Controls.Cast<Control>().ToArray()) {
-            if (old != keptGrid && old != keptSetting) old.Dispose();
+            if (old != keptGrid && old != keptSetting && old != _graph && old != _surface) old.Dispose();
         }
         _grid = keptGrid;
         _setting = keptSetting;
@@ -203,7 +219,8 @@ public sealed class PageView : Panel {
     /// cell instead (<see cref="RevealCell"/>).
     /// </summary>
     protected override Point ScrollToControl(Control activeControl) =>
-        activeControl == _grid ? DisplayRectangle.Location : base.ScrollToControl(activeControl);
+        // A picture taken hold of with the mouse must not move away under the pointer either.
+        activeControl == _grid || (activeControl is TableChart && MouseButtons != MouseButtons.None) ? DisplayRectangle.Location : base.ScrollToControl(activeControl);
 
     protected override void Dispose(bool disposing) {
         if (disposing) {
@@ -335,6 +352,14 @@ public sealed class PageView : Panel {
             _grid.CurrentCellChanged += (_, _) => RevealCell();
             _grid.Enter += (_, _) => RevealCell();
             Controls.Add(_grid);
+            var table = (ParamKind.Table)block.Def.Kind;
+            if (table.Rows > 1 && table.Cols > 1) _surface = new TableSurface(_grid);
+            if (table.Rows * table.Cols > 0) _graph = new TableGraph(_grid);
+            foreach (var chart in Charts()) {
+                // Which cell a picture moved to is for a screen reader; the cells show it to the eye.
+                chart.Announced += text => Announced?.Invoke(text);
+                Controls.Add(chart);
+            }
         } else {
             _grid.ApplyTheme();
         }
@@ -343,16 +368,45 @@ public sealed class PageView : Panel {
         var grid = _grid;
         // What the last action did, for those who do not hear it announced. It keeps its line, so nothing moves when it speaks.
         var note = _note = NewLabel("", null, DarkTheme.Text);
+        var charts = Charts().ToArray();
+        foreach (var chart in charts) Controls.SetChildIndex(chart, Controls.Count - 1);
         _parts.Add((x, y, width) => {
+            var (gap, top) = (Em(0.8f), y + Em(0.8f));
             // The table may be wider than the reading column, up to the width of the view.
-            var size = grid.FitSize(ClientSize.Width - x - Em(1.25f));
-            grid.SetBounds(x, y + Em(0.8f), size.Width, size.Height);
-            var noteHeight = Math.Max(Fit(note, x, y + Em(0.8f) + size.Height + Em(0.4f), width), Em(1f));
-            return Em(0.8f) + size.Height + Em(0.4f) + noteHeight;
+            var room = ClientSize.Width - x - Em(1.25f);
+            var size = grid.FitSize(room);
+            grid.SetBounds(x, top, size.Width, size.Height);
+            // The pictures stand beside the cells, where a change shows in them at once, when the view is wide enough.
+            var column = Math.Max(size.Width, Em(12f));
+            var beside = charts.Length > 0 && room - column - 2 * gap >= Em(ChartWidth);
+            var noteHeight = Math.Max(Fit(note, x, grid.Bottom + Em(0.4f), beside ? column : width), Em(1f));
+            var bottom = grid.Bottom + Em(0.4f) + noteHeight;
+            if (beside) {
+                // As tall together as the cells, each no lower than can be read.
+                var each = Math.Max((bottom - top - (charts.Length - 1) * gap) / charts.Length, Em(ChartHeight));
+                for (var i = 0; i < charts.Length; i++) {
+                    charts[i].SetBounds(x + column + 2 * gap, top + i * (each + gap), Math.Min(room - column - 2 * gap, Em(2 * ChartWidth)), each);
+                }
+                bottom = Math.Max(bottom, charts[^1].Bottom);
+            } else {
+                // Under the cells: side by side where both have room, one over the other where not.
+                var across = room >= charts.Length * Em(ChartWidth) + (charts.Length - 1) * gap;
+                var each = across ? Math.Min((room - (charts.Length - 1) * gap) / charts.Length, Em(2 * ChartWidth)) : Math.Max(Math.Min(room, Em(2 * ChartWidth)), Em(10f));
+                var under = bottom + gap;
+                for (var i = 0; i < charts.Length; i++) {
+                    charts[i].SetBounds(across ? x + i * (each + gap) : x, across ? under : under + i * (Em(1.25f * ChartHeight) + gap), each, Em(1.25f * ChartHeight));
+                }
+                bottom = charts.Length > 0 ? charts[^1].Bottom : bottom;
+            }
+            return bottom - y;
         });
         // Under the cells: nothing but the name of the table stands between the tuner and the table.
         AddText(Details.GridHelp, null, DarkTheme.TextDim, 0.2f);
+        if (charts.Length > 0) AddText(Details.ChartHelp(block.Def), null, DarkTheme.TextDim, 0.4f);
     }
+
+    /// <summary>The pictures of the table on the page, top to bottom.</summary>
+    private IEnumerable<TableChart> Charts() => new TableChart?[] { _surface, _graph }.OfType<TableChart>();
 
     private void AddSetting(PageBlock.Setting block) {
         if (_setting is null) {
@@ -384,6 +438,8 @@ public sealed class PageView : Panel {
 
     /// <summary>Scrolls the page so that the cell the keyboard is on is in view.</summary>
     private void RevealCell() {
+        // A cell chosen in a picture is looked at there: the page stays where it is.
+        if (Charts().Any(c => c.Focused)) return;
         if (_arranging || _grid is not { CurrentCellAddress: { X: >= 0, Y: >= 0 } at } grid) return;
         var cell = grid.GetCellDisplayRectangle(at.X, at.Y, cutOverflow: false);
         if (cell.IsEmpty) return;

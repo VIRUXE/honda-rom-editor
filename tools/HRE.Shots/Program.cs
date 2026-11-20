@@ -14,7 +14,9 @@ namespace HRE.Shots;
 /// that position between cells, with made-up counts of readings around it; <c>--size=1180x1300</c>
 /// sets the size of the window, which may be taller than the screen; <c>--hold=seconds</c>
 /// keeps the window up after the picture, to read what it gives a screen reader from another process;
-/// <c>--ask</c> takes the picture of the question about changes that are not saved, in place of the main window.
+/// <c>--ask</c> takes the picture of the question about changes that are not saved, in place of the main window;
+/// <c>--show=graph</c> or <c>--show=surface</c> scrolls that picture of the table into view;
+/// <c>--turn=turn,tilt</c> turns the surface to those angles, in degrees.
 /// </summary>
 internal static partial class Program {
     private const int ShowNoActivate = 4;
@@ -26,6 +28,8 @@ internal static partial class Program {
         var args = new List<string>();
         (int Row, int Col)? cell = null;
         (float Row, float Col)? trace = null;
+        (float Turn, float Tilt)? turn = null;
+        string? show = null;
         var hold = 0.0;
         var ask = false;
         Size? size = null;
@@ -37,11 +41,13 @@ internal static partial class Program {
             else if (arg.StartsWith("--cell=", StringComparison.Ordinal)) cell = ((int)Pair(arg)[0], (int)Pair(arg)[1]);
             else if (arg.StartsWith("--trace=", StringComparison.Ordinal)) trace = (Pair(arg)[0], Pair(arg)[1]);
             else if (arg.StartsWith("--hold=", StringComparison.Ordinal)) hold = Pair(arg)[0];
+            else if (arg.StartsWith("--turn=", StringComparison.Ordinal)) turn = (Pair(arg)[0], Pair(arg)[1]);
+            else if (arg.StartsWith("--show=", StringComparison.Ordinal)) show = arg["--show=".Length..];
             else if (arg.StartsWith("--size=", StringComparison.Ordinal)) size = new Size((int)Pair(arg.Replace('x', ','))[0], (int)Pair(arg.Replace('x', ','))[1]);
             else args.Add(arg);
         }
         if (args.Count is < 1 or > 3) {
-            Console.Error.WriteLine("usage: HRE.Shots [--technical] [--zoom=1.5] [--cell=row,col] [--trace=row,col] [--size=WxH] [--hold=seconds] [--ask] out.png [rom.bin [parameter name]]");
+            Console.Error.WriteLine("usage: HRE.Shots [--technical] [--zoom=1.5] [--cell=row,col] [--trace=row,col] [--show=graph|surface] [--turn=turn,tilt] [--size=WxH] [--hold=seconds] [--ask] out.png [rom.bin [parameter name]]");
             return 2;
         }
         AppStartup.Configure();
@@ -71,6 +77,11 @@ internal static partial class Program {
                     return (int)(240 * MathF.Exp(-(dr * dr + dc * dc) / 3f));
                 })];
             }
+            Settle();
+        }
+        if (turn is { } angles && form.Page.Surface is { } surface) surface.TurnBy(angles.Turn - surface.Turn, angles.Tilt - surface.Tilt);
+        if ((show == "graph" ? form.Page.Graph : show == "surface" ? form.Page.Surface : (Control?)null) is { } picture) {
+            form.Page.ScrollControlIntoView(picture);
             Settle();
         }
         GetWindowRect(window.Handle, out var bounds);

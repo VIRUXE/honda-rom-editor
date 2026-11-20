@@ -7,7 +7,7 @@
 | `HRE.Build` | Runs the assembler as an external tool and turns a source project into a ROM image |
 | `HRE.Comms` | Raw-byte links (serial, TCP, scripted), datalog protocol drivers, ROM emulator drivers |
 | `HRE.Datalog` | Channel maps, sample pipeline, cell accumulator, filters, log files |
-| `HRE.App` | WinForms application: main window, the list, pages built from standard controls, settings, the black theme |
+| `HRE.App` | WinForms application: main window, the list, pages built from standard controls, the table grid with its surface and graph, settings, the black theme |
 | `HRE.Tests` | xUnit tests |
 | `tools/HRE.Shots` | Saves a picture of the main window, for the documentation and for checking the theme |
 | `tools/research` | Scripts that survey the ROM corpus |

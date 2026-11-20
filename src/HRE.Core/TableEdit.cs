@@ -80,6 +80,20 @@ public static class TableEdit {
     }
 
     /// <summary>
+    /// The byte writes that add <paramref name="amount"/> to what every one of <paramref name="cells"/>
+    /// shows (a negative amount takes away). Each cell lands on the nearest value it can hold.
+    /// </summary>
+    public static List<(int Address, byte Value)> Add(RomImage image, ParamDef def, IEnumerable<CellRef> cells, float amount) {
+        var writes = new List<(int, byte)>();
+        foreach (var cell in cells) AddSet(writes, image, def, cell, ParamAccess.CellDisplay(image, def, cell.Row, cell.Col) + amount);
+        return writes;
+    }
+
+    /// <summary>What a cell of column <paramref name="col"/> shows once it is set to <paramref name="display"/>: the nearest value it can hold.</summary>
+    public static float Nearest(RomImage image, ParamDef def, int col, float display) =>
+        def.Display(Raw(image, def, col, display) * ParamAccess.ColumnFactor(image, def, col));
+
+    /// <summary>
     /// The byte writes that raise (or, with a negative count, lower) every one of
     /// <paramref name="cells"/> by <paramref name="steps"/> of the smallest step it can take.
     /// "Raise" is what the user sees: with a negative scale the stored value goes down.
@@ -148,9 +162,12 @@ public static class TableEdit {
         return factor == 0f || def.Scale == 0f ? null : (display - def.Bias) / (double)def.Scale / factor;
     }
 
+    /// <summary>What a cell stores to show <paramref name="display"/> as nearly as it can; zero when nothing it stores changes what it shows.</summary>
+    private static int Raw(RomImage image, ParamDef def, int col, float display) =>
+        Stored(image, def, col, display) is { } stored ? (int)Math.Clamp(Math.Round(stored, MidpointRounding.AwayFromZero), 0, ParamAccess.CellMax(def)) : 0;
+
     private static void AddSet(List<(int, byte)> writes, RomImage image, ParamDef def, CellRef cell, float display) {
-        if (Stored(image, def, cell.Col, display) is not { } stored) return;
-        var raw = (int)Math.Clamp(Math.Round(stored, MidpointRounding.AwayFromZero), 0, ParamAccess.CellMax(def));
-        writes.AddRange(ParamAccess.CellWrites(def, cell.Row, cell.Col, raw));
+        if (Stored(image, def, cell.Col, display) is null) return;
+        writes.AddRange(ParamAccess.CellWrites(def, cell.Row, cell.Col, Raw(image, def, cell.Col, display)));
     }
 }

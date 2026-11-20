@@ -10,6 +10,7 @@ What was found out while building the editor, written down so that it can be che
 | [The black theme](Dark-theme.md) | What the dark colour mode of WinForms gives on .NET 11, what it does not, and what the editor does itself |
 | [What .NET 11, WinForms and C# 15 offer](Platform-features.md) | Which platform features were checked on the installed SDK, and which the editor uses or leaves alone, and why |
 | [Saving a ROM file](Saving.md) | How the file is written so that a crash cannot leave half a ROM, what Windows reports for a file that is held or read-only, why the first state of a file is kept as a copy, when the editor asks before changes are lost |
+| [The surface and the graph](Table-views.md) | How the two pictures of a table are drawn and tied to its cells, what a painted control must be for a screen reader to be given its name, how dragging a point becomes one step |
 | [The table grid](Table-grid.md) | Why the cells of a table are a standard grid drawn by the editor, what had to be changed in it, how the colours and the engine position were chosen, what a screen reader is given |
 
 ## Rules for these pages
@@ -32,6 +33,6 @@ The scripts in [`tools/research`](../../tools/research) read the corpus (see `wo
 | `fetch_hondabase.py`, `list_archives.py` | Fetch files of the hondabase archive with their checksums verified; list what archives hold |
 | `wiki_hunks.py` | The text replacements that bring a wiki page up to date |
 
-[`tools/HRE.Shots`](../../tools/HRE.Shots) saves a picture of the editor's main window without bringing it to the front: `dotnet run --project tools/HRE.Shots -- [--technical] [--zoom=2] [--cell=row,col] [--trace=row,col] [--size=WxH] [--hold=seconds] [--ask] out.png [rom.bin [parameter name]]`. `--ask` takes the picture of the question about changes that are not saved. `--cell` moves to a cell of the table, `--trace` shows the engine at a position between cells, `--hold` keeps the window up so that another process can read what it gives a screen reader. `make_icon.py` draws the application icon (needs Pillow).
+[`tools/HRE.Shots`](../../tools/HRE.Shots) saves a picture of the editor's main window without bringing it to the front: `dotnet run --project tools/HRE.Shots -- [--technical] [--zoom=2] [--cell=row,col] [--trace=row,col] [--show=graph|surface] [--turn=turn,tilt] [--size=WxH] [--hold=seconds] [--ask] out.png [rom.bin [parameter name]]`. `--ask` takes the picture of the question about changes that are not saved. `--cell` moves to a cell of the table, `--trace` shows the engine at a position between cells, `--show` scrolls the graph or the surface of the table into view, `--turn` turns the surface to the given angles, `--hold` keeps the window up so that another process can read what it gives a screen reader. `make_icon.py` draws the application icon (needs Pillow).
 
 Listings are made with the `rasm66k` disassembler: `rasm66k dasm <rom> <listing>`.

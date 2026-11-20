@@ -54,6 +54,21 @@ public static class Details {
     /// <summary>What can be done in the cells of a table, said under them: the keys are not to be guessed.</summary>
     public const string GridHelp = "Move with the arrow keys; hold Shift to select more cells. Type a number and press Enter to change the selected cells, or press + and - to raise and lower them a step. Ctrl+C copies, Ctrl+V pastes.";
 
+    /// <summary>
+    /// What the two pictures of a table show and what can be done in them, said under the keys of
+    /// the cells. A table of a single row or a single column has no surface, and its graph is its
+    /// one line.
+    /// </summary>
+    public static string ChartHelp(ParamDef def) {
+        var table = (ParamKind.Table)def.Kind;
+        var (line, point) = table.Rows > 1 ? ("column", "row") : ("row", "column");
+        var graph = $"The graph shows the {line} of the cell you are on as a line, with a point for each {point}. Drag a point up or down to change its cell, or press the up and down arrow keys. The left and right arrow keys move along the line";
+        if (table.Rows > 1 && table.Cols > 1) graph += $", and with Ctrl to the next {line}";
+        return table.Rows > 1 && table.Cols > 1
+            ? $"{graph}. The surface shows the whole table. Drag it to turn it, or press the arrow keys; Home turns it back."
+            : $"{graph}.";
+    }
+
     /// <summary>What can be done in the field of a setting, said under it.</summary>
     public const string SettingHelp = "Type a number and press Enter, or press the up and down arrow keys to raise and lower it a step.";
 

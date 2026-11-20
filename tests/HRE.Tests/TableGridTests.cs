@@ -284,7 +284,8 @@ public class TableGridTests {
         var order = view.Controls.Cast<Control>().OrderBy(c => c.TabIndex).ToList();
         Assert.True(order.IndexOf(grid) < order.FindIndex(c => c is TextBox { AccessibleName: "Values" }));
         Assert.True(order.IndexOf(grid) < order.FindIndex(c => c is Button));
-        Assert.All(order.Zip(order.Skip(1)), pair => Assert.True(pair.Second.Top >= pair.First.Top, $"`{pair.Second.Text}` is above `{pair.First.Text}`"));
+        // Down the page, or to the right where the pictures stand beside the cells.
+        Assert.All(order.Zip(order.Skip(1)), pair => Assert.True(pair.Second.Top >= pair.First.Top || pair.Second.Left >= pair.First.Right, $"`{pair.Second.Text}` is above `{pair.First.Text}`"));
 
         var heard = new List<string>();
         view.Announced += heard.Add;

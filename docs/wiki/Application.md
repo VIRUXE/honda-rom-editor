@@ -1,8 +1,8 @@
 # Application
 
-The editor is one window: a menu bar, a list of what the open ROM holds, a page for what is selected, and a status bar. A table's page is its cells, with what is said of the table under them. What is changed can be undone step by step and is saved with the checksum corrected. It is built to the [[Design principles]]: usable with the keyboard alone and with a screen reader, in plain words, with the technical detail one command away.
+The editor is one window: a menu bar, a list of what the open ROM holds, a page for what is selected, and a status bar. A table's page is its cells, with two pictures of the table beside them, a surface and a graph, and what is said of the table under them. What is changed can be undone step by step and is saved with the checksum corrected. It is built to the [[Design principles]]: usable with the keyboard alone and with a screen reader, in plain words, with the technical detail one command away.
 
-![The main window with a fuel map selected: its cells first, in colours from blue for the smallest value to red for the largest, and under them the keys, what the table is and how to read it](https://raw.githubusercontent.com/VIRUXE/honda-rom-editor/main/docs/assets/shell.png)
+![The main window with a fuel map selected: its cells first, in colours from blue for the smallest value to red for the largest; beside them the table as a surface and as a graph; under them the keys, what the table is and how to read it](https://raw.githubusercontent.com/VIRUXE/honda-rom-editor/main/docs/assets/shell.png)
 
 Run it with `dotnet run --project src/HRE.App`, or start `HondaRomEditor.exe`. A ROM file given on the command line is opened.
 
@@ -43,7 +43,7 @@ Opening never changes the file. When the ROM that is open has changes that are n
 |---|---|
 | Overview | What kind of ROM the file was recognised as; whether its checksum is correct, with what a checksum is; its size; what it holds, group by group; its add-ons and whether each is on |
 | A group | Its tables and settings, each with its description |
-| A table | Its cells, to read and to change, straight under its name. Under them: the keys that work in the cells; what the table is, in a sentence; what its rows and columns stand for, how many steps each has and from where to where they run; the range of its values; whether the engine computer uses it with VTEC on or off |
+| A table | Its cells, to read and to change, straight under its name. Beside them, or under them in a narrow window, the table as a surface and as a graph. Under them: the keys that work in the cells; what the table is, in a sentence; what its rows and columns stand for, how many steps each has and from where to where they run; the range of its values; whether the engine computer uses it with VTEC on or off |
 | A setting | Its value in a field, to read and to change, with its unit beside it. Under it: the keys that work in the field; what the setting is; from where to where it can be set, and in which steps. A value the ROM's description marks as fixed is shown, not offered for change |
 
 ## The cells of a table
@@ -67,6 +67,32 @@ Cells are written with as many decimals as tell one step from the next: a table 
 The page follows the table: the range under **How to read it** is that of the cells as they are now. A screen reader reads a cell as its place and its value ("RPM 3000, MAP kPa 75: 33.5").
 
 The grid can also show where the engine is running, by framing the cells around that point, and how many logged readings fell in each cell. Both wait for the datalogger.
+
+## The surface and the graph
+
+Two pictures of the table stand beside its cells, where a change to a cell shows in them at once. In a window too narrow for that they stand under the cells. They hold nothing of their own: they draw the cells, mark the cell the keyboard is on, and change cells through the grid, so every change made in a picture is the same step, undone the same way, as one made in the cells.
+
+**The surface** is the whole table seen from above and to one side. Each cell is a corner of it, as high as its value and in the colour it has in the cells; the first row is at the back and the first column on the left, as if the cells were laid flat. The two sides at the front carry the steps they run between, and the upright at the left the smallest and the largest value. The cell the keyboard is on is marked with a dot, and so are the selected cells.
+
+| To | Do |
+|---|---|
+| Turn and tilt it | Drag it with the mouse, or press the arrow keys. It is never seen from underneath |
+| Go back to the view it starts with | Home |
+| Move to a cell | Click its corner |
+
+**The graph** shows one column of the table as a line, with a point for each row: the column of the cell the keyboard is on, named above the line. The other columns are drawn faintly behind it, to compare it with. The points are spaced evenly, as the cells are, and each has the colour of its cell; the value of the cell the keyboard is on is written beside its point. A table of a single row is drawn as its one line, along its columns.
+
+| To | Do |
+|---|---|
+| Change a cell | Drag its point up or down. While it is dragged the point shows the value it will be stored as, and the number beside it follows. Esc lets go without a change |
+| Change several cells together | Select them in the cells, then drag the point of one of them: the others move by the same amount |
+| Raise or lower the cell a step | The up and down arrow keys |
+| Move along the line | The left and right arrow keys, or click a point |
+| Go to the next column | Ctrl with the left and right arrow keys, or click a point of another line |
+
+A point cannot be dragged past what its cell can hold. A drag is one step for undo, however many cells it moved.
+
+A screen reader reads each picture by its name ("Graph of Fuel Map (Low Cam)") and what it shows in words: where the smallest and the largest values are, and the cell the keyboard is on. The values themselves are read in the cells.
 
 ## A setting
 
@@ -126,9 +152,11 @@ Every value on a page is a field that can be reached with Tab, selected and copi
 | Ctrl+S, Ctrl+Shift+S | Save; save as another file |
 | Ctrl+Z, Ctrl+Y | Undo, redo |
 | F6, Shift+F6 | Moves between the list and the page |
-| Tab, Shift+Tab | Moves through the fields and buttons of the page, and to the divider, which the arrow keys move |
+| Tab, Shift+Tab | Moves through the cells, the pictures, the fields and the buttons of the page, and to the divider, which the arrow keys move |
 | Page Up, Page Down, Ctrl+Home, Ctrl+End | Scroll the page. In the cells of a table they move between cells |
 | Arrow keys, Shift, a number, Enter, Esc, F2, +, -, Ctrl+A, Ctrl+C, Ctrl+V | In the cells of a table: see [The cells of a table](#the-cells-of-a-table) |
+| Arrow keys, Home | In the surface of a table: turn and tilt it, and bring back the view it starts with |
+| Arrow keys, Ctrl with left and right, Esc | In the graph of a table: see [The surface and the graph](#the-surface-and-the-graph) |
 | A number, Enter, the up and down arrow keys | In the field of a setting: see [A setting](#a-setting) |
 | Ctrl+T | Technical details |
 | Ctrl++, Ctrl+-, Ctrl+0 | Text size |

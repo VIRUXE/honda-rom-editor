@@ -166,6 +166,20 @@ public sealed class TableGrid : DataGridView {
         }
     }
 
+    /// <summary>
+    /// Adds an amount to what the selected cells show (a negative amount takes away), as one
+    /// step. Each cell lands on the nearest value it can hold. It is what dragging a point of
+    /// the graph does.
+    /// </summary>
+    public void Add(float amount) {
+        var cells = SelectedRefs;
+        if (ReadOnly || cells.Count == 0 || amount == 0f) return;
+        if (!Document.Apply($"Change {Def.Name}", TableEdit.Add(Document.Image, Def, cells, amount))) return;
+        Announced?.Invoke(cells.Count == 1
+            ? $"Set to {TableEdit.CellText(Document.Image, Def, cells[0].Row, cells[0].Col)}"
+            : $"{(amount > 0f ? "Raised" : "Lowered")} {cells.Count} cells by {TableEdit.Text(MathF.Abs(amount), _decimals)}");
+    }
+
     /// <summary>The selected cells as text for the clipboard.</summary>
     public string CopyText() => TableEdit.CopyText(Document.Image, Def, SelectedRefs);
 
@@ -345,9 +359,11 @@ public sealed class TableGrid : DataGridView {
 
     private const TextFormatFlags Centred = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine;
 
-    private string RowHeader(int row) => AxisText(Def.RowAxis, row);
+    /// <summary>A step of the rows, as it is written down the left side.</summary>
+    internal string RowHeader(int row) => AxisText(Def.RowAxis, row);
 
-    private string ColumnHeader(int col) => AxisText(Def.ColAxis, col);
+    /// <summary>A step of the columns, as it is written along the top.</summary>
+    internal string ColumnHeader(int col) => AxisText(Def.ColAxis, col);
 
     /// <summary>A step of a row or a column, rounded for reading: whole from a thousand up, one decimal below.</summary>
     private string AxisText(Axis axis, int i) {

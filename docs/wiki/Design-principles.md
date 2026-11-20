@@ -55,7 +55,7 @@ Editing and saving:
 ## Accessibility
 
 - **Keyboard.** Every command is reachable without a mouse: access keys on every menu and item, shortcuts for the common ones, Tab through the page, F6 between the list and the page, arrow keys on the divider. The focus is always visible.
-- **Screen readers.** The window is made of standard controls, each with a name: text as labels, values as read-only fields named after their row, actions as buttons, notices as groups with their heading as the name, the cells of a table as the cells of a standard grid named after their row and column. Nothing that carries information is only painted: what is drawn over a cell is in its description. What an action did is announced.
+- **Screen readers.** The window is made of standard controls, each with a name: text as labels, values as read-only fields named after their row, actions as buttons, notices as groups with their heading as the name, the cells of a table as the cells of a standard grid named after their row and column. Nothing that carries information is only painted: what is drawn over a cell is in its description, and the surface and the graph of a table, which draw what its cells hold, say in words where its smallest and largest values are. What an action did is announced.
 - **Contrast.** Text at least 7 : 1 on its background, dimmed and coloured text at least 4.5 : 1, anything that shows a state or the edge of a control at least 3 : 1. The text of a table cell is black on every colour a cell can take, at 7 : 1 or more. A unit test holds the palette to this.
 - **Colour is never the only signal.** A state is words, and a symbol beside them; colour comes third.
 - **Text size.** View > Larger text enlarges everything up to twice the size, and pages grow taller instead of clipping. Sizes are derived from the font, so display scaling and Windows' own text size carry through.
@@ -68,7 +68,7 @@ Editing and saving:
 - A page is one reading column, no wider than is comfortable to read, starting at the top left.
 - Notices stand on a slightly lighter card with a coloured edge and a symbol: information, good, warning, problem.
 - Symbols come from the icon font of Windows; they follow the text size and the colour around them. No emoji.
-- Standard controls in their current Windows look; custom drawing only where a standard control cannot do the job: the selection of the list, and the cells of a table, which are the standard grid with each cell drawn in the colour of its value.
+- Standard controls in their current Windows look; custom drawing only where a standard control cannot do the job: the selection of the list, the cells of a table, which are the standard grid with each cell drawn in the colour of its value, and the surface and the graph of a table.
 
 ## What the platform offers, and what is used
 
