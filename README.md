@@ -28,13 +28,13 @@
 
 ---
 
-## ✨ Highlights
+## Highlights
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
-### 🧬 ROMs built from source
+### ROMs built from source
 The ROM is assembled, not patched. Features are build-time switches, tables are bound to
 **symbols** instead of addresses, and your tuning lives in a separate overlay that is re-applied
 on every build.
@@ -42,7 +42,7 @@ on every build.
 </td>
 <td width="50%" valign="top">
 
-### 📦 Existing `.bin` files, safely
+### Existing `.bin` files, safely
 Definition packs identify a ROM by fingerprint and describe its tables as data. Patch recipes
 state the bytes they expect to replace — and refuse to run when they don't match.
 
@@ -51,14 +51,14 @@ state the bytes they expect to replace — and refuse to run when they don't mat
 <tr>
 <td width="50%" valign="top">
 
-### 📡 Pick your datalog protocol
+### Pick your datalog protocol
 Dashes, Bluetooth loggers and tuning tools each expect a specific protocol, so you choose which
 one the ROM speaks — including a new framed, timestamped stream built for accurate tuning.
 
 </td>
 <td width="50%" valign="top">
 
-### 🎯 Tuning math done properly
+### Tuning math done properly
 Bilinear cell weighting, lambda-domain averaging and exhaust transport-delay compensation, so a
 reading lands on the cell that actually produced it.
 
@@ -67,14 +67,14 @@ reading lands on the cell that actually produced it.
 <tr>
 <td width="50%" valign="top">
 
-### 🔌 Live tuning hardware
+### Live tuning hardware
 Moates Ostrich, One ROM and CobraRTP emulators behind one device layer, recognised by how they
 answer rather than by COM port number.
 
 </td>
 <td width="50%" valign="top">
 
-### 🧪 No ECU required
+### No ECU required
 Everything is tested against a virtual ECU that runs the real ROM and serves its serial port —
 no engine, bench harness or emulator needed.
 
@@ -82,26 +82,26 @@ no engine, bench harness or emulator needed.
 </tr>
 </table>
 
-## 🗺️ Roadmap
+## Roadmap
 
 | | Milestone | What it delivers |
 |:-:|---|---|
-| ✅ | **M1** Core and formats | ROM image, checksum, parameter model, undo/redo, project file formats |
-| ✅ | **M2** Build | Source project → ROM image through the assembler, overlay applied, checksum fixed |
-| ⬜ | **M3** Definition packs | Open existing `.bin` files; verified patch recipes |
-| ⬜ | **M4** App shell | Black-themed window, table grid, 3D surface, undo/redo, save |
-| ⬜ | **M5** Virtual ECU serial port | Emulated ECU serving its real serial routines over TCP |
-| ⬜ | **M6** Legacy datalog drivers | eCtune-compatible, CROME QD2 / QD3-compatible |
-| ⬜ | **M7** Selectable ROM protocols | Choose the protocol a ROM speaks; the HRE stream protocol |
-| ⬜ | **M8** Tuning pipeline | Cell tracing, lambda accumulation, live display, playback |
-| ⬜ | **M9** Emulator drivers | Ostrich 1.0 / 2.0, One ROM, CobraRTP |
-| ⬜ | **M10** OBD0 | P04 and the dual-point ECUs first, then PR3 / PW0 and the 8051 family |
-| ⬜ | **M11** Feature bundle | Editor and firmware features, tier by tier |
-| ⬜ | **M12** Hardware verification | The emulator checks repeated on real devices |
+| <img alt="Done" src="https://img.shields.io/badge/-done-3cbe50?style=flat-square"> | **M1** Core and formats | ROM image, checksum, parameter model, undo/redo, project file formats |
+| <img alt="Done" src="https://img.shields.io/badge/-done-3cbe50?style=flat-square"> | **M2** Build | Source project → ROM image through the assembler, overlay applied, checksum fixed |
+| <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M3** Definition packs | Open existing `.bin` files; verified patch recipes |
+| <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M4** App shell | Black-themed window, table grid, 3D surface, undo/redo, save |
+| <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M5** Virtual ECU serial port | Emulated ECU serving its real serial routines over TCP |
+| <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M6** Legacy datalog drivers | eCtune-compatible, CROME QD2 / QD3-compatible |
+| <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M7** Selectable ROM protocols | Choose the protocol a ROM speaks; the HRE stream protocol |
+| <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M8** Tuning pipeline | Cell tracing, lambda accumulation, live display, playback |
+| <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M9** Emulator drivers | Ostrich 1.0 / 2.0, One ROM, CobraRTP |
+| <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M10** OBD0 | P04 and the dual-point ECUs first, then PR3 / PW0 and the 8051 family |
+| <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M11** Feature bundle | Editor and firmware features, tier by tier |
+| <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M12** Hardware verification | The emulator checks repeated on real devices |
 
 Progress lives on the [project board](https://github.com/users/VIRUXE/projects/4).
 
-## 🚀 Getting started
+## Getting started
 
 ```powershell
 git clone https://github.com/VIRUXE/honda-rom-editor
@@ -114,7 +114,7 @@ Requires the **.NET 11 SDK**. Building a source project also needs the `rasm66k`
 on the `PATH`, next to the application, or point `HRE_RASM66K` at it. Tests that need it, or files
 outside this repository, are skipped when those are missing.
 
-## 🧱 What's inside
+## What's inside
 
 | Project | Contents |
 |---|---|
@@ -123,7 +123,7 @@ outside this repository, are skipped when those are missing.
 | [`HRE.Build`](src/HRE.Build) | Runs the assembler and turns a source project into a ROM image |
 | [`HRE.Tests`](tests/HRE.Tests) | Unit, build and workspace tests |
 
-## 📚 Documentation
+## Documentation
 
 | | |
 |---|---|
@@ -135,6 +135,6 @@ outside this repository, are skipped when those are missing.
 | [Feature bundle](https://github.com/VIRUXE/honda-rom-editor/wiki/Feature-bundle) | Every planned editor and firmware feature |
 | [Testing without hardware](https://github.com/VIRUXE/honda-rom-editor/wiki/Testing-without-hardware) | How each area is verified |
 
-## ⚖️ Licence
+## Licence
 
 Public domain, under [The Unlicense](LICENSE).
