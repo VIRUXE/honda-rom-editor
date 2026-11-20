@@ -8,6 +8,11 @@ namespace HRE.Definitions;
 /// absolute address (in the given encoding), or a fixed list of values. Exactly one of the three.
 /// </summary>
 public abstract record AxisSpec(string Label) {
+    /// <summary>Displayed breakpoint = stored value x Scale + Bias. A fixed list is already in display units.</summary>
+    public float Scale { get; init; } = 1f;
+
+    public float Bias { get; init; }
+
     public sealed record AtSymbol(string Label, string Symbol, AxisEncoding Encoding = AxisEncoding.Words) : AxisSpec(Label);
 
     public sealed record AtAddress(string Label, int Address, AxisEncoding Encoding = AxisEncoding.Words) : AxisSpec(Label);
@@ -107,9 +112,10 @@ public static class ParamDefinitions {
 
     /// <summary>
     /// An axis is <c>{ label, symbol }</c>, <c>{ label, address }</c> or <c>{ label, values }</c>,
-    /// with an optional <c>encoding</c> (<c>words</c>, <c>delta-bytes</c>, or <c>values</c> for a
-    /// fixed list). Two locations, an encoding that contradicts the location, or any other key, is
-    /// an error.
+    /// with an optional <c>encoding</c> (<c>words</c>, <c>delta-bytes</c>, <c>bytes</c>,
+    /// <c>log-bytes</c>, or <c>values</c> for a fixed list). A stored axis may give a
+    /// <c>scale</c> and a <c>bias</c>. Two locations, an encoding that contradicts the location,
+    /// or any other key, is an error.
     /// </summary>
     private static AxisSpec? ParseAxis(TomlTable param, string key) {
         if (!param.TryGetValue(key, out var value)) return null;
@@ -123,11 +129,18 @@ public static class ParamDefinitions {
         AxisEncoding? stored = encoding switch {
             null or "words" => AxisEncoding.Words,
             "delta-bytes" => AxisEncoding.DeltaBytes,
+            "bytes" => AxisEncoding.Bytes,
+            "log-bytes" => AxisEncoding.LogBytes,
             _ => null,
         };
-        if (stored is { } e && keys is ["symbol"]) return new AxisSpec.AtSymbol(label, TomlReader.String(axis, "symbol"), e);
-        if (stored is { } f && keys is ["address"]) return new AxisSpec.AtAddress(label, (int)TomlReader.Integer(axis, "address", 0, int.MaxValue), f);
-        throw new HreFormatException($"`{key}` must be {{ label, symbol }}, {{ label, address }} or {{ label, values }}, with encoding words, delta-bytes or values to match");
+        var scale = TomlReader.Number(axis, "scale", 1f);
+        // A zero scale would show every breakpoint as the same value.
+        if (scale == 0f) throw new HreFormatException($"`{key}.scale` must not be 0");
+        var bias = TomlReader.Number(axis, "bias", 0f);
+        keys.RemoveAll(k => k is "scale" or "bias");
+        if (stored is { } e && keys is ["symbol"]) return new AxisSpec.AtSymbol(label, TomlReader.String(axis, "symbol"), e) { Scale = scale, Bias = bias };
+        if (stored is { } f && keys is ["address"]) return new AxisSpec.AtAddress(label, (int)TomlReader.Integer(axis, "address", 0, int.MaxValue), f) { Scale = scale, Bias = bias };
+        throw new HreFormatException($"`{key}` must be {{ label, symbol }}, {{ label, address }} or {{ label, values }}, with encoding words, delta-bytes, bytes, log-bytes or values to match; only a stored axis has a scale and a bias");
     }
 
     /// <summary><c>multiplier = { symbol | address, kind }</c>; <c>kind</c> is <c>linear</c> (the default) or <c>exponent</c>.</summary>
@@ -240,9 +253,9 @@ public static class ParamDefinitions {
     private static Axis? ResolveAxis(AxisSpec spec, int n, string which, string owner, SymbolMap? map, List<string> problems) {
         switch (spec) {
             case AxisSpec.AtSymbol s:
-                return Locate(map, s.Symbol, null, problems) is { } offset ? Axis.At(s.Label, offset, s.Symbol, s.Encoding) : null;
+                return Locate(map, s.Symbol, null, problems) is { } offset ? Axis.At(s.Label, offset, s.Symbol, s.Encoding) with { Scale = s.Scale, Bias = s.Bias } : null;
             case AxisSpec.AtAddress a:
-                return Axis.At(a.Label, a.Address, null, a.Encoding);
+                return Axis.At(a.Label, a.Address, null, a.Encoding) with { Scale = a.Scale, Bias = a.Bias };
             case AxisSpec.Fixed f when f.Values.Count != n:
                 problems.Add($"{owner}: {which} has {f.Values.Count} values, the table has {n}");
                 return null;

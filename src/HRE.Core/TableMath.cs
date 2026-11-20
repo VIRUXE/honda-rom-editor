@@ -19,10 +19,15 @@ public static class TableMath {
     /// </summary>
     public static (float Row, float Col)? TablePos(RomImage image, ParamDef def, float rowValue, float colValue) {
         if (def.Kind is not ParamKind.Table table || !ParamAccess.Contains(image, def)) return null;
-        var rows = ParamAccess.AxisValues(image, def.RowAxis, table.Rows);
-        var cols = ParamAccess.AxisValues(image, def.ColAxis, table.Cols);
-        return (AxisPos(rows, rowValue), AxisPos(cols, colValue));
+        return (AxisPos(image, def.RowAxis, table.Rows, rowValue), AxisPos(image, def.ColAxis, table.Cols, colValue));
     }
+
+    /// <summary>
+    /// Fractional index of a displayed value along an axis. Measured in stored units, as the ECU
+    /// does: on a log-scaled axis that is not the same as interpolating the displayed breakpoints.
+    /// </summary>
+    private static float AxisPos(RomImage image, Axis axis, int n, float value) =>
+        AxisPos(ParamAccess.AxisStoredValues(image, axis, n), axis.Stored(value));
 
     /// <summary>Bilinear table lookup, in display units.</summary>
     public static float? Lookup(RomImage image, ParamDef def, float rowValue, float colValue) {

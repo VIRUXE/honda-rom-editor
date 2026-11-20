@@ -37,6 +37,15 @@ public enum AxisEncoding {
 
     /// <summary>One byte per breakpoint, each the increase over the one before; the first is the breakpoint itself.</summary>
     DeltaBytes,
+
+    /// <summary>One byte per breakpoint. A zero after the first breakpoint stands for 256: it ends the list.</summary>
+    Bytes,
+
+    /// <summary>
+    /// As <see cref="Bytes"/>, on a scale that doubles every 64 steps and is linear in between:
+    /// byte <c>b</c> stands for <c>2^(b / 64) x (1 + (b % 64) / 64)</c>.
+    /// </summary>
+    LogBytes,
 }
 
 /// <summary>How a per-column multiplier byte scales the cells of its column.</summary>
@@ -65,8 +74,16 @@ public abstract record ParamKind {
 /// Breakpoints increase.
 /// </summary>
 public sealed record Axis(string Label, string? Symbol, int Offset, IReadOnlyList<ushort>? Values, AxisEncoding Encoding = AxisEncoding.Words) {
+    /// <summary>Steps of a <see cref="AxisEncoding.LogBytes"/> axis per doubling.</summary>
+    private const int StepsPerOctave = 64;
+
     /// <summary>Placeholder for parameters that are not tables.</summary>
     public static Axis None { get; } = new("", null, 0, null);
+
+    /// <summary>Displayed breakpoint = stored value x Scale + Bias (the stored value first put through the log scale, if any).</summary>
+    public float Scale { get; init; } = 1f;
+
+    public float Bias { get; init; }
 
     public static Axis At(string label, int offset, string? symbol = null, AxisEncoding encoding = AxisEncoding.Words) =>
         new(label, symbol, offset, null, encoding);
@@ -78,6 +95,27 @@ public sealed record Axis(string Label, string? Symbol, int Offset, IReadOnlyLis
 
     /// <summary>Bytes an axis of <paramref name="n"/> breakpoints occupies in the ROM; none when fixed.</summary>
     public int StoredLength(int n) => IsFixed ? 0 : Encoding == AxisEncoding.Words ? 2 * n : n;
+
+    /// <summary>
+    /// What a stored value stands for, in display units. Values between two stored ones are
+    /// meaningful too: the ECU interpolates between breakpoints in stored units.
+    /// </summary>
+    public float Display(float stored) {
+        if (Encoding == AxisEncoding.LogBytes) {
+            var octave = MathF.Floor(stored / StepsPerOctave);
+            stored = MathF.Pow(2f, octave) * (1f + (stored - octave * StepsPerOctave) / StepsPerOctave);
+        }
+        return stored * Scale + Bias;
+    }
+
+    /// <summary>The stored value that stands for a displayed one: the inverse of <see cref="Display"/>.</summary>
+    public float Stored(float display) {
+        var value = (display - Bias) / Scale;
+        if (Encoding != AxisEncoding.LogBytes) return value;
+        // Below the first octave the scale carries on as the first octave's line.
+        var octave = value > 1f ? MathF.Floor(MathF.Log2(value)) : 0f;
+        return StepsPerOctave * (octave + value / MathF.Pow(2f, octave) - 1f);
+    }
 }
 
 public sealed record ParamDef {

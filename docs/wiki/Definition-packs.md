@@ -126,9 +126,20 @@ An axis is an inline table with a `label` and one of:
 |---|---|---|
 | `{ label, address }` | `words` (default) | One big-endian 16-bit breakpoint each |
 | `{ label, address, encoding = "delta-bytes" }` | `delta-bytes` | One byte each: the first is the breakpoint, every later byte is the increase over the breakpoint before it |
+| `{ label, address, encoding = "bytes" }` | `bytes` | One byte each. A zero after the first breakpoint stands for 256 and ends the list |
+| `{ label, address, encoding = "log-bytes" }` | `log-bytes` | As `bytes`, on a scale that doubles every 64 steps and is linear in between: byte `b` stands for 2^(`b` div 64) x (1 + (`b` mod 64) / 64) |
 | `{ label, values = [...] }` | `values` (may be omitted) | Not in the ROM: a fixed list, one value per row or column, increasing; cannot be edited |
 
-Breakpoints always increase. Editing one breakpoint of a delta-encoded axis leaves the others where they are: the step that follows is adjusted to match, and the new value is limited so that both steps still fit one byte.
+A stored axis may add `scale` and `bias`: displayed breakpoint = stored value x `scale` + `bias` (1 and 0 when left out). With `log-bytes` the scale is what byte 0 stands for: `scale = 500` puts 500, 1000, 2000 and 4000 at bytes 0, 64, 128 and 192. A fixed list is already in display units and takes neither.
+
+```toml
+row_axis = { label = "RPM", address = 0x700A, encoding = "log-bytes", scale = 500 }
+col_axis = { label = "MAP kPa", address = 0x7000, encoding = "bytes", scale = 0.36105, bias = 11.43 }
+```
+
+Breakpoints always increase. Editing one breakpoint of a delta-encoded axis leaves the others where they are: the step that follows is adjusted to match, and the new value is limited so that both steps still fit one byte. A single-byte breakpoint stays below 256, which only the last one can hold.
+
+Where an operating point falls between two breakpoints is measured in stored units, because that is how the ECU interpolates. On a `log-bytes` axis this differs from interpolating the displayed values whenever two neighbouring breakpoints lie in different octaves.
 
 ### Column multipliers
 
@@ -213,4 +224,4 @@ A file that cannot be understood (bad syntax, a missing or contradictory key, an
 
 ## Source projects
 
-`definitions.toml` in a source project accepts the same optional keys (`platform`, `cell`, axis `encoding`, `multiplier`), with a `symbol` wherever a pack has an `address`. Files written before these keys existed stay valid.
+`definitions.toml` in a source project accepts the same optional keys (`platform`, `cell`, axis `encoding`, `scale` and `bias`, `multiplier`), with a `symbol` wherever a pack has an `address`. Files written before these keys existed stay valid.

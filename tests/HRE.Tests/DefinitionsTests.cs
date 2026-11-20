@@ -123,7 +123,7 @@ public class DefinitionsTests {
     public void AxisSpecWithBothSymbolAndValuesOrUnknownKeysIsRejected() {
         Assert.Throws<HreFormatException>(() => ParamDefinitions.Parse(FixedAxes.Replace("values = [500, 1000]", "symbol = 'fuel_rpm', values = [500, 1000]")));
         Assert.Throws<HreFormatException>(() => ParamDefinitions.Parse(FixedAxes.Replace("values = [500, 1000]", "values = [500, 1000], symbol = 'fuel_rpm'")));
-        Assert.Throws<HreFormatException>(() => ParamDefinitions.Parse(FixedAxes.Replace("symbol = 'fuel_map'", "symbol = 'fuel_map', scale = 2")));
+        Assert.Throws<HreFormatException>(() => ParamDefinitions.Parse(FixedAxes.Replace("symbol = 'fuel_map'", "symbol = 'fuel_map', stride = 2")));
         Assert.Throws<HreFormatException>(() => ParamDefinitions.Parse(FixedAxes.Replace("[500, 1000]", "[500, 70000]")));
     }
 
