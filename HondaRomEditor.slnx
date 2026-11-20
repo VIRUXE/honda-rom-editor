@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/HRE.Core/HRE.Core.csproj" />
     <Project Path="src/HRE.Definitions/HRE.Definitions.csproj" />
+    <Project Path="src/HRE.Build/HRE.Build.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/HRE.Tests/HRE.Tests.csproj" />

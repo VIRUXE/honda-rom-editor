@@ -34,7 +34,14 @@ dotnet test HondaRomEditor.slnx
 |---|---|
 | `src/HRE.Core` | ROM image, checksum, parameter model, table math, undo/redo document |
 | `src/HRE.Definitions` | Project manifest, parameter definitions, feature flags, calibration overlay, symbol map |
+| `src/HRE.Build` | Runs the rasm66k assembler and turns a source project into a ROM image |
 | `tests/HRE.Tests` | Unit tests |
+
+Building a source project needs the `rasm66k` assembler: put it on the `PATH`, next to the
+application, or point `HRE_RASM66K` at it. Tests that need it, or files outside this repository,
+are skipped when those are missing.
+
+Design notes are in [`docs/wiki`](docs/wiki/Home.md).
 
 ## Licence
 

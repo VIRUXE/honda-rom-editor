@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\HRE.Core\HRE.Core.csproj" />
     <ProjectReference Include="..\..\src\HRE.Definitions\HRE.Definitions.csproj" />
+    <ProjectReference Include="..\..\src\HRE.Build\HRE.Build.csproj" />
   </ItemGroup>
 
 </Project>
