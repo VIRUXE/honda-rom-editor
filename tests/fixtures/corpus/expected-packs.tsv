@@ -1,0 +1,196 @@
+# The pack each image of the test corpus is identified as, or - when no pack describes it.
+# Paths are relative to hondaecu/test-roms in the workspace. Every 32 KiB image there is listed.
+pack	path
+crome-gold	editors/crome/CROME GOLD BASE v0.94.NEW
+obd1-p28	editors/crome/P28 USDM Civic D16Z (304).NEW
+obd1-p30	editors/crome/P30 JDM Civic B16A (203).NEW
+obd1-p30	editors/crome/P30G EDM Civic B16A2 (209).NEW
+obd1-p72	editors/crome/P72 USDM Integra B18C1-3 (273).NEW
+ectune-273	editors/ectune/eCt-273-v0.0.65.bin
+obd1-p30	hondabase/ecu-roms/203stock.bin
+obd1-p28	hondabase/ecu-roms/243stock.bin
+obd1-p28	hondabase/ecu-roms/245stock.bin
+obd1-p28	hondabase/ecu-roms/248stock.bin
+obd1-p28	hondabase/ecu-roms/249stock.bin
+obd1-p28	hondabase/ecu-roms/251stock.bin
+obd1-p72	hondabase/ecu-roms/269stock.bin
+obd1-p72	hondabase/ecu-roms/273stock.bin
+obd1-p72	hondabase/ecu-roms/274stock.bin
+obd1-p28	hondabase/ecu-roms/303stock-P07-D15Z1.bin
+obd1-p28	hondabase/ecu-roms/304stock.bin
+obd1-p28	hondabase/ecu-roms/305stock.bin
+obd1-p28	hondabase/ecu-roms/317P28-G02-317.bin
+obd1-p28	hondabase/ecu-roms/318stock.bin
+obd1-p28	hondabase/ecu-roms/327stock-P28auto.bin
+obd1-p72	hondabase/ecu-roms/332stock.bin
+-	hondabase/ecu-roms/37820-P11-G00.bin
+-	hondabase/ecu-roms/37820-P13-Q00.bin
+obd1-p30	hondabase/ecu-roms/37820-P28-L50.bin
+crome-gold	hondabase/ecu-roms/crome gold.bin
+-	hondabase/ecu-roms/d16a8_stock.BIN
+-	hondabase/ecu-roms/innova_P51A.BIN
+obd1-p30	hondabase/ecu-roms/int233stock.bin
+obd1-p28	hondabase/ecu-roms/JDMP30_932_311code.bin
+-	hondabase/ecu-roms/ng6001.bin
+-	hondabase/ecu-roms/ng60_04.bin
+obd1-p30	hondabase/ecu-roms/obd1-p29-224_normal.bin
+obd1-p28	hondabase/ecu-roms/orgasm_p28.bin
+obd1-p30	hondabase/ecu-roms/p05-USDM-231.bin
+obd1-p28	hondabase/ecu-roms/p06-301.bin
+obd1-p28	hondabase/ecu-roms/p06-import-only.bin
+obd1-p28	hondabase/ecu-roms/p06-q00-314.bin
+-	hondabase/ecu-roms/P07-225--.bin
+-	hondabase/ecu-roms/P07-900-262MCU.bin
+-	hondabase/ecu-roms/p07-g01-218.bin
+-	hondabase/ecu-roms/p07-g01-252.bin
+obd1-p30	hondabase/ecu-roms/P08-001-237.bin
+obd1-p30	hondabase/ecu-roms/P08-900AT.bin
+obd1-p28	hondabase/ecu-roms/p08-911-243.bin
+-	hondabase/ecu-roms/p08-n01-283.bin
+-	hondabase/ecu-roms/p0a-q50-d5.bin
+-	hondabase/ecu-roms/p0c-q00-d8.bin
+-	hondabase/ecu-roms/p0c-q10-L3.bin
+-	hondabase/ecu-roms/p12-a00.bin
+-	hondabase/ecu-roms/p12-a00.rom
+-	hondabase/ecu-roms/P13-G00-C3.bin
+-	hondabase/ecu-roms/P13-N01-E6.bin
+-	hondabase/ecu-roms/P13.JDM.Prelude.BIN
+-	hondabase/ecu-roms/P13OEMJ50AT.bin
+-	hondabase/ecu-roms/P14-A11_stock.bin
+-	hondabase/ecu-roms/p14-q00-c0.bin
+-	hondabase/ecu-roms/p14-q52-e4.bin
+-	hondabase/ecu-roms/p14.bin
+obd1-p30	hondabase/ecu-roms/P28-230.bin
+obd1-p28	hondabase/ecu-roms/p28-q50-315.bin
+obd1-p28	hondabase/ecu-roms/p29-q01-244.bin
+obd1-p30	hondabase/ecu-roms/p29-q50-202.bin
+obd1-p28	hondabase/ecu-roms/P29-T01-321MCU.bin
+obd1-p72	hondabase/ecu-roms/p2p_p75-rom.bin
+obd1-p30	hondabase/ecu-roms/p30-900JDM-AT.bin
+obd1-p30	hondabase/ecu-roms/p30-j00-240.bin
+obd1-p30	hondabase/ecu-roms/P30_G00_209_EDM.bin
+obd1-p30	hondabase/ecu-roms/P30USDMCivicD16Y8203.BIN
+-	hondabase/ecu-roms/p39-n01-f6.rom
+-	hondabase/ecu-roms/p39-n50-89.bin
+obd1-p30	hondabase/ecu-roms/P61-USDM-215.bin
+obd1-p28	hondabase/ecu-roms/P70-900_259_ZC_VTEC_AT.bin
+-	hondabase/ecu-roms/P74-USDM-214.bin
+obd1-p72	hondabase/ecu-roms/p75-q01-270.bin
+-	hondabase/ecu-roms/PH3-0732-88-89-Accord.bin
+-	hondabase/ecu-roms/PJ0_L022.BIN
+-	hondabase/ecu-roms/pk2-0133-10.bin
+-	hondabase/ecu-roms/pk2-6214-12.bin
+-	hondabase/ecu-roms/pk2-6220-27.bin
+-	hondabase/ecu-roms/pk2-6640-19.bin
+-	hondabase/ecu-roms/PK2-6660-53.bin
+-	hondabase/ecu-roms/PK2-rom-51.bin
+-	hondabase/ecu-roms/pm6ng_stable.bin
+-	hondabase/ecu-roms/Pm7-0330-50.bin
+-	hondabase/ecu-roms/PR3-900-93.bin
+-	hondabase/ecu-roms/pr3-901-58.bin
+obd1-p30	hondabase/ecu-roms/pr3-j01-205.bin
+obd1-p30	hondabase/ecu-roms/pr3-j51-219.bin
+-	hondabase/ecu-roms/PR3GSR.bin
+-	hondabase/ecu-roms/pr4-a02.bin.bin
+-	hondabase/ecu-roms/pr4-q02-54.rom
+-	hondabase/ecu-roms/pr4-q51-33.bin
+-	hondabase/ecu-roms/pr4-q60-92.bin
+obd1-p30	hondabase/ecu-roms/pr4-q61-235.bin
+obd1-p30	hondabase/ecu-roms/pr4-USDM-232.bin
+-	hondabase/ecu-roms/PR5-003-59.bin
+-	hondabase/ecu-roms/pt3-q50-83.bin
+-	hondabase/ecu-roms/PT3_A54.BIN
+-	hondabase/ecu-roms/pt6-j50-d2.bin
+-	hondabase/ecu-roms/pt6-q50-97.rom
+-	hondabase/ecu-roms/PW0-000-71.BIN
+-	hondabase/ecu-roms/PW0-X00.bin
+obd1-p28	hondabase/ecu-roms/STANDARD.BIN
+-	hondabase/ecu-roms/STOCK-PM6.bin
+-	hondabase/ecu-roms/STOCK-PR3.bin
+obd1-p28	hondabase/ecu-roms/Stock_P30-901_AT.bin
+-	hondabase/haltech/B18B1.hs1-112
+-	hondabase/haltech/platinum-pro-plug-in/basemaps/Honda OBD-I B16A 24T VE_112.hs1-112
+-	hondabase/haltech/platinum-pro-plug-in/basemaps/Honda OBD-I B16A Turbo 24T VE_112.hs1-112
+-	hondabase/hts/bins/D14A4@122HP SP98.bin
+obd1-p72	hondabase/hts/bins/D15B-3stage.bin
+-	hondabase/hts/bins/D15B2@126HP E85.bin
+-	hondabase/hts/bins/D15Z6 E85 147hp.bin
+-	hondabase/hts/bins/D16Z6 Street tuning SP98.bin
+-	hondabase/hts/bins/D16Z6Baserom.bin
+-	hondabase/hts/bins/lyonnel 2.0 launch ok.bin
+-	hondabase/hts/bins/Y7-Z6Cam9PSI.bin
+-	hondabase/xenocron/bre/troy.bin
+-	hondabase/xenocron/bre/turboB16_8.bin
+obd1-p30	hondabase/xenocron/crome/b/1.bin
+-	hondabase/xenocron/crome/b/3.bin
+-	hondabase/xenocron/crome/b/7.bin
+-	hondabase/xenocron/crome/b/_15Sept05-CromeTuned.bin
+-	hondabase/xenocron/crome/b/B201000SC61.bin
+obd1-p30	hondabase/xenocron/crome/b/B20Vtec.IACVDelete.Bin
+obd1-p30	hondabase/xenocron/crome/b/cheoh.bin
+-	hondabase/xenocron/crome/b/chris550-ls-101-3bar.bin
+obd1-p30	hondabase/xenocron/crome/b/Crome-Stock-TypeR-P73-240cc.bin
+-	hondabase/xenocron/crome/b/Crome4.bin
+-	hondabase/xenocron/crome/b/final-tune.bin
+-	hondabase/xenocron/crome/b/final.bin
+-	hondabase/xenocron/crome/b/frankieLSVTAK.bin
+-	hondabase/xenocron/crome/b/GSRSC611000.bin
+-	hondabase/xenocron/crome/b/JCbaseNO2step.bin
+-	hondabase/xenocron/crome/b/JoeyBuiltB16.bin
+-	hondabase/xenocron/crome/b/Jon-Ls-DA-4.bin
+-	hondabase/xenocron/crome/b/JoshTurbolsvtec1.bin
+-	hondabase/xenocron/crome/b/New turbo civic map.bin
+obd1-p30	hondabase/xenocron/crome/b/RedHatchDynoTune.bin
+obd1-p30	hondabase/xenocron/crome/b/RuebenDynoTune.bin
+-	hondabase/xenocron/crome/b/ryantegafter.bin
+obd1-p72	hondabase/xenocron/crome/b/stock-ls-jason.bin
+obd1-p30	hondabase/xenocron/crome/b/StockGSRTUNEP30BASE.BIN
+obd1-p30	hondabase/xenocron/crome/b/test.bin
+-	hondabase/xenocron/crome/b/todabin.bin
+obd1-p30	hondabase/xenocron/crome/b/treyb20.bin
+obd1-p30	hondabase/xenocron/crome/b/v2-stock-ls-jason.bin
+-	hondabase/xenocron/crome/b/Wesbase880cc3bar8partial.bin
+-	hondabase/xenocron/crome/b/wierd half 110 final 17 psi.bin
+-	hondabase/xenocron/crome/d/11psi-FooK.bin
+-	hondabase/xenocron/crome/d/2.5tune9final.bin
+-	hondabase/xenocron/crome/d/bang-bin3-450cc-z6.bin
+-	hondabase/xenocron/crome/d/d16z657trim450.bin
+-	hondabase/xenocron/crome/d/d16z6RSmotors7psi14b.BIN
+-	hondabase/xenocron/crome/d/dietz_2.5bar_750cc_race.bin
+-	hondabase/xenocron/crome/d/edsohc450cc.bin
+-	hondabase/xenocron/crome/d/haroon3.bin
+-	hondabase/xenocron/crome/d/jaredbase.bin
+-	hondabase/xenocron/crome/d/jeffsBoostbin.bin
+-	hondabase/xenocron/crome/d/jeffsciv23.bin
+-	hondabase/xenocron/crome/d/Minimet25450.bin
+-	hondabase/xenocron/crome/d/RSmotors tune ZC.bin
+-	hondabase/xenocron/crome/d/steve stock MAP final3.bin
+-	hondabase/xenocron/crome/d/Stevefinal.bin
+obd1-p28	hondabase/xenocron/crome/d/Tuned-D16y7.bin
+obd1-p30	hondabase/xenocron/crome/h/Crome-Stock-H22-P13-240cc.bin
+obd1-p30	hondabase/xenocron/crome/h/JDMH22AFINAL.bin
+-	hondabase/xenocron/hondata/s200/S200-H22A Turbo.bin
+obd1-p30	hondabase/xenocron/hondata/s300/LastDyno.bin
+-	hondabase/xenocron/turboedit/4gvtectune.bin
+-	hondabase/xenocron/turboedit/550supr.bin
+-	hondabase/xenocron/turboedit/brett1.bin
+-	hondabase/xenocron/turboedit/chris-ZC-450-8.bin
+-	hondabase/xenocron/turboedit/church7.bin
+-	hondabase/xenocron/turboedit/CURRENT MAP 450s.BIN
+-	hondabase/xenocron/turboedit/D15boost.bin
+-	hondabase/xenocron/turboedit/ng48 DTT.bin
+-	hondabase/xenocron/turboedit/ng48-PR4tune-19.bin
+-	hondabase/xenocron/turboedit/ng48_rory.bin
+-	hondabase/xenocron/turboedit/ng48_rory_2.bin
+-	hondabase/xenocron/turboedit/NG55-PM7CurrentTune.bin
+-	hondabase/xenocron/turboedit/ng55_25barbasetuned.bin
+-	hondabase/xenocron/turboedit/ng55costum.bin
+-	hondabase/xenocron/turboedit/ng55costum2.bin
+-	hondabase/xenocron/turboedit/NG60_Splitime.bin
+-	hondabase/xenocron/turboedit/ng60_splitime_560cc.bin
+-	hondabase/xenocron/turboedit/ng60_vtec3.bin
+-	hondabase/xenocron/turboedit/ng60brenttestricher.bin
+-	hondabase/xenocron/turboedit/perfect pm7 2.bin
+-	hondabase/xenocron/turboedit/polk1.3.bin
+-	lyonnel-2.0-launch-ok.bin
+obd1-p72	P28-ERMbaseline.bin

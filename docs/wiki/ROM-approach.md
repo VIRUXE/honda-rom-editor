@@ -16,7 +16,7 @@ The ROM is assembled from source.
 
 ## Definition packs (for existing `.bin` files)
 
-A data file ([[Definition packs]] documents the format) that:
+A data file ([[Definition packs]] documents the format, [[Supported ROMs]] lists the ones that ship) that:
 
 - identifies a ROM by fingerprint (size, hash, or masked byte ranges);
 - describes its parameters by absolute address, with units and conversions;

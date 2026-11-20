@@ -1,0 +1,142 @@
+# ROMs made by eCtune on its eCt-273 firmware, version 0.0.65.
+id = "ectune-273"
+name = "eCtune eCt-273 v0.0.65"
+platform = "obd1-66207"
+rom_size = 0x8000
+
+# The bytes with which this firmware finds its main maps and axes, and its version number.
+[[fingerprint]]
+bytes = [
+    { address = 0x072D, value = [0x47, 0x98, 0xC0, 0xFF, 0x44, 0x98, 0x07, 0x00, 0x46, 0x98, 0x53, 0x07, 0x60, 0x00, 0x53] },
+    { address = 0x078A, value = [0x44, 0x98, 0x00, 0xAA, 0xF9, 0x90, 0x37] },
+    { address = 0x09E2, value = [0x60, 0x71, 0x6E, 0xCD, 0x03, 0x60, 0x2F, 0x6E, 0xC3, 0x67, 0x4B, 0xC4, 0x36, 0x4A, 0x9E, 0x12, 0xC5] },
+    { address = 0x0A01, value = [0x60, 0x85, 0x6E, 0xCD, 0x03, 0x60, 0x43, 0x6E, 0xC3, 0x68, 0x4B, 0xC5, 0xC2, 0x4A, 0x9E, 0x12, 0xC5] },
+    { address = 0x0A3D, value = [0x60, 0x59, 0x6E, 0xCD, 0x03, 0x60, 0x17, 0x6E, 0xC3, 0x5F, 0x4B, 0x9E, 0x16, 0xA3, 0x0C, 0x32, 0xC4, 0x49, 0xD3] },
+    { address = 0x0B1F, value = [0x98, 0x18, 0x99, 0x14, 0xC3, 0x5F, 0x4A, 0xB3, 0x62, 0x79, 0xC3, 0x67, 0x4B, 0xB3, 0x6A, 0x4B, 0x60, 0x9D, 0x72, 0xCD, 0x03, 0x60, 0x4F, 0x7A] },
+    { address = 0x0B40, value = [0x99, 0x14, 0xC3, 0x68, 0x4B, 0xB3, 0x6C, 0x4B, 0xC2, 0x2D, 0x60, 0x7D, 0x74, 0xCD, 0x03, 0x60, 0x2F, 0x7C] },
+    { address = 0x0B52, value = [0xA3, 0x0D, 0x32, 0xFC, 0x49] },
+    { address = 0x113B, value = [0x98, 0x18, 0x99, 0x14, 0xC4, 0xDF, 0x4A, 0xB4, 0xE2, 0x79, 0xC4, 0xE8, 0x4B, 0xB4, 0xEC, 0x4B, 0x60, 0xA5, 0x70, 0xCD, 0x03, 0x60, 0x57, 0x78] },
+    { address = 0x115C, value = [0x99, 0x14, 0xC4, 0xE7, 0x4B, 0xB4, 0xEA, 0x4B, 0xC2, 0x2D, 0x60, 0xAD, 0x6E, 0xCD, 0x03, 0x60, 0x5F, 0x76] },
+    { address = 0x116E, value = [0xA3, 0x1D, 0x32, 0xFC, 0x49] },
+    { address = 0x49CA, value = [0xF9, 0x88, 0x8A, 0x7B, 0x4E, 0xCA, 0x01, 0x7E, 0x8E, 0x90, 0x81, 0xAE, 0x70, 0x90, 0xAA, 0xC9, 0x03, 0x4A, 0xCF, 0xF7, 0x7A, 0xBE, 0x80, 0x90, 0xAE, 0xCA] },
+    { address = 0x49FC, value = [0xF9, 0x7A, 0x90, 0x81, 0x90, 0x7A, 0x67, 0x01, 0x01, 0xA3, 0x2D, 0xCD, 0x08, 0x79, 0xA2, 0x34, 0x92, 0x81, 0xF9, 0x92, 0xA8, 0x8A, 0x7B, 0xA2, 0x34, 0x90, 0x81, 0x90, 0xA8] },
+    { address = 0x7FF7, value = [0x00, 0x00, 0x41] },
+]
+
+# This firmware does not check a sum over the ROM.
+[checksum]
+kind = "none"
+
+[datalog]
+protocol = "ectune"
+
+# Each map holds 24 columns; the columns a tune does not use repeat the last breakpoint. There
+# are two sets of maps, each with its own axes; the ROM says whether the second set is in use.
+# Each fuel map is followed by one multiplier per column: the ECU uses cell x multiplier.
+# RPM rows: the low-cam axis doubles every 64 steps from 500 rpm; the high-cam axis is linear.
+# MAP columns are shown as the stored code: the pressure a code stands for depends on the MAP
+# sensor set in the ROM.
+
+[[param]]
+category = "Fuel"
+name = "Fuel Map (Low Cam)"
+address = 0x6EAD
+kind = "table"
+rows = 20
+cols = 24
+vtec = false
+row_axis = { label = "RPM", address = 0x6E71, encoding = "log-bytes", scale = 500 }
+col_axis = { label = "MAP code", address = 0x6E59, encoding = "bytes" }
+multiplier = { address = 0x708D }
+
+[[param]]
+category = "Fuel"
+name = "Fuel Map (High Cam)"
+address = 0x70A5
+kind = "table"
+rows = 20
+cols = 24
+vtec = true
+row_axis = { label = "RPM", address = 0x6E85, encoding = "bytes", scale = 43.0836 }
+col_axis = { label = "MAP code", address = 0x6E59, encoding = "bytes" }
+multiplier = { address = 0x7285 }
+
+[[param]]
+category = "Ignition"
+name = "Ignition Map (Low Cam)"
+address = 0x729D
+kind = "table"
+rows = 20
+cols = 24
+unit = "° BTDC"
+scale = 0.25
+bias = -6.0
+vtec = false
+row_axis = { label = "RPM", address = 0x6E71, encoding = "log-bytes", scale = 500 }
+col_axis = { label = "MAP code", address = 0x6E59, encoding = "bytes" }
+
+[[param]]
+category = "Ignition"
+name = "Ignition Map (High Cam)"
+address = 0x747D
+kind = "table"
+rows = 20
+cols = 24
+unit = "° BTDC"
+scale = 0.25
+bias = -6.0
+vtec = true
+row_axis = { label = "RPM", address = 0x6E85, encoding = "bytes", scale = 43.0836 }
+col_axis = { label = "MAP code", address = 0x6E59, encoding = "bytes" }
+
+[[param]]
+category = "Fuel"
+name = "Fuel Map 2 (Low Cam)"
+address = 0x765F
+kind = "table"
+rows = 20
+cols = 24
+vtec = false
+row_axis = { label = "RPM", address = 0x6E2F, encoding = "log-bytes", scale = 500 }
+col_axis = { label = "MAP code", address = 0x6E17, encoding = "bytes" }
+multiplier = { address = 0x783F }
+
+[[param]]
+category = "Fuel"
+name = "Fuel Map 2 (High Cam)"
+address = 0x7857
+kind = "table"
+rows = 20
+cols = 24
+vtec = true
+row_axis = { label = "RPM", address = 0x6E43, encoding = "bytes", scale = 43.0836 }
+col_axis = { label = "MAP code", address = 0x6E17, encoding = "bytes" }
+multiplier = { address = 0x7A37 }
+
+[[param]]
+category = "Ignition"
+name = "Ignition Map 2 (Low Cam)"
+address = 0x7A4F
+kind = "table"
+rows = 20
+cols = 24
+unit = "° BTDC"
+scale = 0.25
+bias = -6.0
+vtec = false
+row_axis = { label = "RPM", address = 0x6E2F, encoding = "log-bytes", scale = 500 }
+col_axis = { label = "MAP code", address = 0x6E17, encoding = "bytes" }
+
+[[param]]
+category = "Ignition"
+name = "Ignition Map 2 (High Cam)"
+address = 0x7C2F
+kind = "table"
+rows = 20
+cols = 24
+unit = "° BTDC"
+scale = 0.25
+bias = -6.0
+vtec = true
+row_axis = { label = "RPM", address = 0x6E43, encoding = "bytes", scale = 43.0836 }
+col_axis = { label = "MAP code", address = 0x6E17, encoding = "bytes" }

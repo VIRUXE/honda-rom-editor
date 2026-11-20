@@ -2,7 +2,7 @@
 
 A definition pack describes an existing ROM image so it can be opened without source: how to recognise it, where its parameters are, where its checksum is, which datalog protocol it speaks and which patches can be applied to it. A pack is one TOML file named `<something>.pack.toml`; packs are plain data and can be shared.
 
-See [[ROM approach]] for where packs fit next to source projects.
+See [[ROM approach]] for where packs fit next to source projects, and [[Supported ROMs]] for the packs that ship with the editor.
 
 ## Example
 

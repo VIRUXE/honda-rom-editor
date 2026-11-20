@@ -88,7 +88,7 @@ no engine, bench harness or emulator needed.
 |:-:|---|---|
 | <img alt="Done" src="https://img.shields.io/badge/-done-3cbe50?style=flat-square"> | **M1** Core and formats | ROM image, checksum, parameter model, undo/redo, project file formats |
 | <img alt="Done" src="https://img.shields.io/badge/-done-3cbe50?style=flat-square"> | **M2** Build | Source project → ROM image through the assembler, overlay applied, checksum fixed |
-| <img alt="In progress" src="https://img.shields.io/badge/-in%20progress-d29922?style=flat-square"> | **M3** Definition packs | Open existing `.bin` files; verified patch recipes. The pack format and patch recipes are in; the first packs are next |
+| <img alt="In progress" src="https://img.shields.io/badge/-in%20progress-d29922?style=flat-square"> | **M3** Definition packs | Open existing `.bin` files; verified patch recipes. The pack format, patch recipes and packs for the factory P28, P30 and P72 firmware, the CROME Gold base and eCtune's base are in; tunes with enlarged boost maps are next |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M4** App shell | Black-themed window, table grid, 3D surface, undo/redo, save |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M5** Virtual ECU serial port | Emulated ECU serving its real serial routines over TCP |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M6** Legacy datalog drivers | eCtune-compatible, CROME QD2 / QD3-compatible |
@@ -121,6 +121,7 @@ outside this repository, are skipped when those are missing.
 | [`HRE.Core`](src/HRE.Core) | Immutable ROM image, checksum, parameter model, table math, undo/redo document |
 | [`HRE.Definitions`](src/HRE.Definitions) | Project manifest, parameter definitions, feature flags, calibration overlay, symbol map; definition packs and patch recipes |
 | [`HRE.Build`](src/HRE.Build) | Runs the assembler and turns a source project into a ROM image |
+| [`packs`](packs) | Definition packs for the common OBD1 ROMs |
 | [`HRE.Tests`](tests/HRE.Tests) | Unit, build and workspace tests |
 
 ## Documentation
@@ -130,6 +131,7 @@ outside this repository, are skipped when those are missing.
 | [Architecture](https://github.com/VIRUXE/honda-rom-editor/wiki/Architecture) | Projects and conventions |
 | [ROM approach](https://github.com/VIRUXE/honda-rom-editor/wiki/ROM-approach) | Source projects and definition packs |
 | [Definition packs](https://github.com/VIRUXE/honda-rom-editor/wiki/Definition-packs) | The pack file format: fingerprints, checksum, parameters, patches |
+| [Supported ROMs](https://github.com/VIRUXE/honda-rom-editor/wiki/Supported-ROMs) | Which existing ROMs open, how they are recognised and how that is checked |
 | [Datalog protocol](https://github.com/VIRUXE/honda-rom-editor/wiki/Datalog-protocol) | Selectable protocols and the HRE stream |
 | [Hardware](https://github.com/VIRUXE/honda-rom-editor/wiki/Hardware) | Supported ROM emulators |
 | [OBD0](https://github.com/VIRUXE/honda-rom-editor/wiki/OBD0) | Which OBD0 ECUs, and how |
