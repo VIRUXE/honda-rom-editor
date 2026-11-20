@@ -11,14 +11,14 @@ public sealed record SourceBlock(int Start, int End, string File);
 
 /// <summary>The assembler's symbol map: every symbol's value and where it was defined.</summary>
 public sealed class SymbolMap {
-    private readonly Dictionary<string, SymbolEntry> _byName = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, SymbolEntry> byName = new(StringComparer.Ordinal);
 
     public SymbolMap(int romSize, string entry, IReadOnlyList<SymbolEntry> symbols, IReadOnlyList<SourceBlock>? blocks = null) {
         RomSize = romSize;
         Entry = entry;
         Symbols = symbols;
         Blocks = blocks ?? [];
-        foreach (var s in symbols) _byName.TryAdd(s.Name, s);
+        foreach (var s in symbols) byName.TryAdd(s.Name, s);
     }
 
     public int RomSize { get; }
@@ -26,7 +26,7 @@ public sealed class SymbolMap {
     public IReadOnlyList<SymbolEntry> Symbols { get; }
     public IReadOnlyList<SourceBlock> Blocks { get; }
 
-    public SymbolEntry? Get(string name) => _byName.GetValueOrDefault(name);
+    public SymbolEntry? Get(string name) => byName.GetValueOrDefault(name);
 
     /// <summary>Reads the JSON the assembler writes with <c>--map</c>.</summary>
     public static SymbolMap FromJson(string json) {

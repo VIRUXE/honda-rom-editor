@@ -13,116 +13,116 @@ partial class AboutForm {
     /// the contents of this method with the code editor.
     /// </summary>
     private void InitializeComponent() {
-        this._column = new System.Windows.Forms.FlowLayoutPanel();
-        this._nameLabel = new System.Windows.Forms.Label();
-        this._versionLabel = new System.Windows.Forms.Label();
-        this._purposeLabel = new System.Windows.Forms.Label();
-        this._earlyLabel = new System.Windows.Forms.Label();
-        this._reportLink = new System.Windows.Forms.LinkLabel();
-        this._buttons = new System.Windows.Forms.FlowLayoutPanel();
-        this._close = new HRE.App.ThemedButton();
-        this._copy = new HRE.App.ThemedButton();
-        this._column.SuspendLayout();
-        this._buttons.SuspendLayout();
+        this.column = new System.Windows.Forms.FlowLayoutPanel();
+        this.nameLabel = new System.Windows.Forms.Label();
+        this.versionLabel = new System.Windows.Forms.Label();
+        this.purposeLabel = new System.Windows.Forms.Label();
+        this.earlyLabel = new System.Windows.Forms.Label();
+        this.reportLink = new System.Windows.Forms.LinkLabel();
+        this.buttons = new System.Windows.Forms.FlowLayoutPanel();
+        this.close = new HRE.App.ThemedButton();
+        this.copy = new HRE.App.ThemedButton();
+        this.column.SuspendLayout();
+        this.buttons.SuspendLayout();
         this.SuspendLayout();
         //
-        // _column
+        // column
         //
-        this._column.AutoSize = true;
-        this._column.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-        this._column.Controls.Add(this._nameLabel);
-        this._column.Controls.Add(this._versionLabel);
-        this._column.Controls.Add(this._purposeLabel);
-        this._column.Controls.Add(this._earlyLabel);
-        this._column.Controls.Add(this._reportLink);
-        this._column.Controls.Add(this._buttons);
-        this._column.Dock = System.Windows.Forms.DockStyle.Fill;
-        this._column.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-        this._column.Location = new System.Drawing.Point(20, 20);
-        this._column.Name = "_column";
-        this._column.TabIndex = 0;
-        this._column.WrapContents = false;
+        this.column.AutoSize = true;
+        this.column.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+        this.column.Controls.Add(this.nameLabel);
+        this.column.Controls.Add(this.versionLabel);
+        this.column.Controls.Add(this.purposeLabel);
+        this.column.Controls.Add(this.earlyLabel);
+        this.column.Controls.Add(this.reportLink);
+        this.column.Controls.Add(this.buttons);
+        this.column.Dock = System.Windows.Forms.DockStyle.Fill;
+        this.column.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+        this.column.Location = new System.Drawing.Point(20, 20);
+        this.column.Name = "column";
+        this.column.TabIndex = 0;
+        this.column.WrapContents = false;
         //
-        // _nameLabel
+        // nameLabel
         //
-        this._nameLabel.AutoSize = true;
-        this._nameLabel.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
-        this._nameLabel.Name = "_nameLabel";
-        this._nameLabel.TabIndex = 0;
-        this._nameLabel.Text = "Honda ROM Editor";
-        this._nameLabel.UseMnemonic = false;
+        this.nameLabel.AutoSize = true;
+        this.nameLabel.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
+        this.nameLabel.Name = "nameLabel";
+        this.nameLabel.TabIndex = 0;
+        this.nameLabel.Text = "Honda ROM Editor";
+        this.nameLabel.UseMnemonic = false;
         //
-        // _versionLabel
+        // versionLabel
         //
-        this._versionLabel.AutoSize = true;
-        this._versionLabel.Name = "_versionLabel";
-        this._versionLabel.TabIndex = 1;
-        this._versionLabel.Text = "Version";
+        this.versionLabel.AutoSize = true;
+        this.versionLabel.Name = "versionLabel";
+        this.versionLabel.TabIndex = 1;
+        this.versionLabel.Text = "Version";
         //
-        // _purposeLabel
+        // purposeLabel
         //
-        this._purposeLabel.AutoSize = true;
-        this._purposeLabel.Margin = new System.Windows.Forms.Padding(3, 12, 3, 3);
-        this._purposeLabel.MaximumSize = new System.Drawing.Size(380, 0);
-        this._purposeLabel.Name = "_purposeLabel";
-        this._purposeLabel.TabIndex = 2;
-        this._purposeLabel.Text = "For the ROMs of Honda OBD0 and OBD1 engine computers.";
+        this.purposeLabel.AutoSize = true;
+        this.purposeLabel.Margin = new System.Windows.Forms.Padding(3, 12, 3, 3);
+        this.purposeLabel.MaximumSize = new System.Drawing.Size(380, 0);
+        this.purposeLabel.Name = "purposeLabel";
+        this.purposeLabel.TabIndex = 2;
+        this.purposeLabel.Text = "For the ROMs of Honda OBD0 and OBD1 engine computers.";
         //
-        // _earlyLabel
+        // earlyLabel
         //
-        this._earlyLabel.AutoSize = true;
-        this._earlyLabel.MaximumSize = new System.Drawing.Size(380, 0);
-        this._earlyLabel.Name = "_earlyLabel";
-        this._earlyLabel.TabIndex = 3;
-        this._earlyLabel.Text = "Early version.";
+        this.earlyLabel.AutoSize = true;
+        this.earlyLabel.MaximumSize = new System.Drawing.Size(380, 0);
+        this.earlyLabel.Name = "earlyLabel";
+        this.earlyLabel.TabIndex = 3;
+        this.earlyLabel.Text = "Early version.";
         //
-        // _reportLink
+        // reportLink
         //
-        this._reportLink.AutoSize = true;
-        this._reportLink.Margin = new System.Windows.Forms.Padding(3, 10, 3, 3);
-        this._reportLink.Name = "_reportLink";
-        this._reportLink.TabIndex = 4;
-        this._reportLink.TabStop = true;
-        this._reportLink.Text = "Report a problem or ask a question";
-        this._reportLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.ReportLink_LinkClicked);
+        this.reportLink.AutoSize = true;
+        this.reportLink.Margin = new System.Windows.Forms.Padding(3, 10, 3, 3);
+        this.reportLink.Name = "reportLink";
+        this.reportLink.TabIndex = 4;
+        this.reportLink.TabStop = true;
+        this.reportLink.Text = "Report a problem or ask a question";
+        this.reportLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.ReportLink_LinkClicked);
         //
-        // _buttons
+        // buttons
         //
-        this._buttons.AutoSize = true;
-        this._buttons.Controls.Add(this._close);
-        this._buttons.Controls.Add(this._copy);
-        this._buttons.Dock = System.Windows.Forms.DockStyle.Fill;
-        this._buttons.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-        this._buttons.Margin = new System.Windows.Forms.Padding(0, 16, 0, 0);
-        this._buttons.Name = "_buttons";
-        this._buttons.TabIndex = 5;
+        this.buttons.AutoSize = true;
+        this.buttons.Controls.Add(this.close);
+        this.buttons.Controls.Add(this.copy);
+        this.buttons.Dock = System.Windows.Forms.DockStyle.Fill;
+        this.buttons.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
+        this.buttons.Margin = new System.Windows.Forms.Padding(0, 16, 0, 0);
+        this.buttons.Name = "buttons";
+        this.buttons.TabIndex = 5;
         //
-        // _close
+        // close
         //
-        this._close.AutoSize = true;
-        this._close.DialogResult = System.Windows.Forms.DialogResult.OK;
-        this._close.Name = "_close";
-        this._close.TabIndex = 0;
-        this._close.Text = "Close";
+        this.close.AutoSize = true;
+        this.close.DialogResult = System.Windows.Forms.DialogResult.OK;
+        this.close.Name = "close";
+        this.close.TabIndex = 0;
+        this.close.Text = "Close";
         //
-        // _copy
+        // copy
         //
-        this._copy.AccessibleDescription = "Copies the versions of the program, .NET and Windows, to paste into a problem report";
-        this._copy.AutoSize = true;
-        this._copy.Name = "_copy";
-        this._copy.TabIndex = 1;
-        this._copy.Text = "&Copy version details";
-        this._copy.Click += new System.EventHandler(this.Copy_Click);
+        this.copy.AccessibleDescription = "Copies the versions of the program, .NET and Windows, to paste into a problem report";
+        this.copy.AutoSize = true;
+        this.copy.Name = "copy";
+        this.copy.TabIndex = 1;
+        this.copy.Text = "&Copy version details";
+        this.copy.Click += new System.EventHandler(this.Copy_Click);
         //
         // AboutForm
         //
-        this.AcceptButton = this._close;
+        this.AcceptButton = this.close;
         this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
         this.AutoSize = true;
         this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-        this.CancelButton = this._close;
-        this.Controls.Add(this._column);
+        this.CancelButton = this.close;
+        this.Controls.Add(this.column);
         this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
         this.MinimizeBox = false;
@@ -131,23 +131,23 @@ partial class AboutForm {
         this.ShowInTaskbar = false;
         this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
         this.Text = "About Honda ROM Editor";
-        this._column.ResumeLayout(false);
-        this._column.PerformLayout();
-        this._buttons.ResumeLayout(false);
-        this._buttons.PerformLayout();
+        this.column.ResumeLayout(false);
+        this.column.PerformLayout();
+        this.buttons.ResumeLayout(false);
+        this.buttons.PerformLayout();
         this.ResumeLayout(false);
         this.PerformLayout();
     }
 
     #endregion
 
-    private System.Windows.Forms.FlowLayoutPanel _column;
-    private System.Windows.Forms.Label _nameLabel;
-    private System.Windows.Forms.Label _versionLabel;
-    private System.Windows.Forms.Label _purposeLabel;
-    private System.Windows.Forms.Label _earlyLabel;
-    private System.Windows.Forms.LinkLabel _reportLink;
-    private System.Windows.Forms.FlowLayoutPanel _buttons;
-    private ThemedButton _close;
-    private ThemedButton _copy;
+    private System.Windows.Forms.FlowLayoutPanel column;
+    private System.Windows.Forms.Label nameLabel;
+    private System.Windows.Forms.Label versionLabel;
+    private System.Windows.Forms.Label purposeLabel;
+    private System.Windows.Forms.Label earlyLabel;
+    private System.Windows.Forms.LinkLabel reportLink;
+    private System.Windows.Forms.FlowLayoutPanel buttons;
+    private ThemedButton close;
+    private ThemedButton copy;
 }

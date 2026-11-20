@@ -18,30 +18,30 @@ public enum ChangesAnswer {
 /// edits; the file name, the fonts, the sizes that follow them and the colours are applied here.
 /// </remarks>
 public sealed partial class ChangesForm : Form {
-    private readonly Font _headingFont;
+    private readonly Font headingFont;
 
     public ChangesForm(string fileName, Font textFont) {
         InitializeComponent();
         SuspendLayout();
         Font = textFont;
         DarkTheme.ApplyToWindow(this);
-        _headingFont = new Font(Font.FontFamily, Font.SizeInPoints * 1.3f, FontStyle.Bold);
+        headingFont = new Font(Font.FontFamily, Font.SizeInPoints * 1.3f, FontStyle.Bold);
 
         // Everything sizes itself to its text, so larger text and other scalings cannot clip it.
         var wrap = new Size(Font.Height * 24, 0);
-        _heading.Text = $"Save the changes to {fileName}?";
-        _heading.Font = _headingFont;
-        _heading.MaximumSize = _body.MaximumSize = wrap;
-        AccessibleDescription = $"{_heading.Text} {_body.Text}";
+        heading.Text = $"Save the changes to {fileName}?";
+        heading.Font = headingFont;
+        heading.MaximumSize = body.MaximumSize = wrap;
+        AccessibleDescription = $"{heading.Text} {body.Text}";
 
         var padding = new Padding(Font.Height / 2, Font.Height / 8, Font.Height / 2, Font.Height / 8);
-        _save.Padding = _discard.Padding = _cancel.Padding = padding;
+        save.Padding = discard.Padding = cancel.Padding = padding;
         if (!DarkTheme.HighContrast) {
             // The main button in the accent of the program, not of Windows; dark text on it reads best.
-            (_save.BackColor, _save.ForeColor) = (DarkTheme.Accent, Color.Black);
-            (_discard.BackColor, _discard.ForeColor) = (_cancel.BackColor, _cancel.ForeColor) = (DarkTheme.Card, DarkTheme.Text);
+            (save.BackColor, save.ForeColor) = (DarkTheme.Accent, Color.Black);
+            (discard.BackColor, discard.ForeColor) = (cancel.BackColor, cancel.ForeColor) = (DarkTheme.Card, DarkTheme.Text);
         }
-        _buttons.Margin = new Padding(0, Font.Height, 0, 0);
+        buttons.Margin = new Padding(0, Font.Height, 0, 0);
         ResumeLayout();
     }
 
@@ -51,7 +51,7 @@ public sealed partial class ChangesForm : Form {
     protected override void Dispose(bool disposing) {
         if (disposing) {
             components?.Dispose();
-            _headingFont.Dispose();
+            headingFont.Dispose();
         }
         base.Dispose(disposing);
     }

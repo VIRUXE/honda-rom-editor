@@ -11,20 +11,20 @@ namespace HRE.App;
 /// engine is running and how often it has been in each cell.
 /// </summary>
 public sealed class TableGrid : DataGridView {
-    private readonly ParamKind.Table _table;
-    private RomImage? _shown;
-    private Font? _hitFont;
-    private int _decimals;
-    private float _min;
-    private float _max;
+    private readonly ParamKind.Table table;
+    private RomImage? shown;
+    private Font? hitFont;
+    private int decimals;
+    private float min;
+    private float max;
 
     public TableGrid(RomDocument document, ParamDef def) {
         Document = document;
         Def = def;
-        _table = (ParamKind.Table)def.Kind;
+        table = (ParamKind.Table)def.Kind;
 
         AccessibleName = def.Name;
-        AccessibleDescription = $"{_table.Rows} rows of {def.RowAxis.Label} by {_table.Cols} columns of {def.ColAxis.Label}";
+        AccessibleDescription = $"{table.Rows} rows of {def.RowAxis.Label} by {table.Cols} columns of {def.ColAxis.Label}";
         VirtualMode = true;
         AllowUserToAddRows = AllowUserToDeleteRows = AllowUserToOrderColumns = AllowUserToResizeColumns = AllowUserToResizeRows = false;
         SelectionMode = DataGridViewSelectionMode.CellSelect;
@@ -45,11 +45,11 @@ public sealed class TableGrid : DataGridView {
         AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
         DoubleBuffered = true;
 
-        for (var col = 0; col < _table.Cols; col++) {
+        for (var col = 0; col < table.Cols; col++) {
             Columns.Add(new DataGridViewColumn(new Cell()) { SortMode = DataGridViewColumnSortMode.NotSortable, Resizable = DataGridViewTriState.False, ValueType = typeof(string) });
         }
         RowTemplate = new Row();
-        RowCount = _table.Rows;
+        RowCount = table.Rows;
         ApplyTheme();
         Reload();
         document.Changed += Reload;
@@ -86,7 +86,7 @@ public sealed class TableGrid : DataGridView {
     public IReadOnlyList<int>? Hits {
         get;
         set {
-            if (value is not null) ArgumentOutOfRangeException.ThrowIfNotEqual(value.Count, _table.Rows * _table.Cols);
+            if (value is not null) ArgumentOutOfRangeException.ThrowIfNotEqual(value.Count, table.Rows * table.Cols);
             var resize = (field is null) != (value is null);
             field = value;
             if (resize) Measure();
@@ -130,7 +130,7 @@ public sealed class TableGrid : DataGridView {
     public string CellNote(int row, int col) {
         var notes = new List<string>();
         if (Trace is { } trace && (int)MathF.Round(trace.Row) == row && (int)MathF.Round(trace.Col) == col) notes.Add("The engine is running here");
-        if (Hits is { } hits) notes.Add(hits[row * _table.Cols + col] switch { 0 => "No readings here", 1 => "1 reading here", var n => $"{n} readings here" });
+        if (Hits is { } hits) notes.Add(hits[row * table.Cols + col] switch { 0 => "No readings here", 1 => "1 reading here", var n => $"{n} readings here" });
         return string.Join(". ", notes);
     }
 
@@ -146,7 +146,7 @@ public sealed class TableGrid : DataGridView {
         var shown = TableEdit.CellText(Document.Image, Def, row, col);
         if (!TableEdit.Fits(Document.Image, Def, col, value)) {
             var (min, max) = TableEdit.Range(Document.Image, Def, col);
-            Announced?.Invoke($"A cell here holds {TableEdit.Text(min, _decimals)} to {TableEdit.Text(max, _decimals)}. It was set to {shown}.");
+            Announced?.Invoke($"A cell here holds {TableEdit.Text(min, decimals)} to {TableEdit.Text(max, decimals)}. It was set to {shown}.");
         } else {
             Announced?.Invoke(cells.Count == 1 ? $"Set to {shown}" : $"Set {cells.Count} cells to {shown}");
         }
@@ -177,7 +177,7 @@ public sealed class TableGrid : DataGridView {
         if (!Document.Apply($"Change {Def.Name}", TableEdit.Add(Document.Image, Def, cells, amount))) return;
         Announced?.Invoke(cells.Count == 1
             ? $"Set to {TableEdit.CellText(Document.Image, Def, cells[0].Row, cells[0].Col)}"
-            : $"{(amount > 0f ? "Raised" : "Lowered")} {cells.Count} cells by {TableEdit.Text(MathF.Abs(amount), _decimals)}");
+            : $"{(amount > 0f ? "Raised" : "Lowered")} {cells.Count} cells by {TableEdit.Text(MathF.Abs(amount), decimals)}");
     }
 
     /// <summary>The selected cells as text for the clipboard.</summary>
@@ -305,8 +305,8 @@ public sealed class TableGrid : DataGridView {
         using (var fill = new SolidBrush(back)) g.FillRectangle(fill, box);
 
         var value = box;
-        if (Hits is { } hits && _hitFont is { } hitFont) {
-            var count = hits[e.RowIndex * _table.Cols + e.ColumnIndex];
+        if (Hits is { } hits && this.hitFont is { } hitFont) {
+            var count = hits[e.RowIndex * table.Cols + e.ColumnIndex];
             // Clear of the frame that shows where the engine is.
             var band = new Rectangle(box.X, box.Y + Font.Height / 5, box.Width - Font.Height * 2 / 5, hitFont.Height);
             if (count > 0) TextRenderer.DrawText(g, count.ToString(System.Globalization.CultureInfo.InvariantCulture), hitFont, band, fore, TextFormatFlags.Right | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding);
@@ -323,11 +323,11 @@ public sealed class TableGrid : DataGridView {
 
     protected override void OnPaint(PaintEventArgs e) {
         base.OnPaint(e);
-        if (Trace is not { } trace || _table.Rows == 0 || _table.Cols == 0) return;
+        if (Trace is not { } trace || table.Rows == 0 || table.Cols == 0) return;
         // A position between steps lies between cells: the engine computer blends the four around
         // it. Each is framed, the heavier the more it counts. The frames stay clear of the numbers.
         var (width, height) = (Columns[0].Width, Rows[0].Height);
-        var (row, col) = (Math.Clamp(trace.Row, 0f, _table.Rows - 1), Math.Clamp(trace.Col, 0f, _table.Cols - 1));
+        var (row, col) = (Math.Clamp(trace.Row, 0f, table.Rows - 1), Math.Clamp(trace.Col, 0f, table.Cols - 1));
         var (top, left) = ((int)row, (int)col);
         var stroke = Math.Max(2f, Font.Height / 9f);
         var g = e.Graphics;
@@ -337,7 +337,7 @@ public sealed class TableGrid : DataGridView {
             (top, left, (1 - (row - top)) * (1 - (col - left))), (top, left + 1, (1 - (row - top)) * (col - left)),
             (top + 1, left, (row - top) * (1 - (col - left))), (top + 1, left + 1, (row - top) * (col - left)),
         }) {
-            if (share < 0.02f || r >= _table.Rows || c >= _table.Cols) continue;
+            if (share < 0.02f || r >= table.Rows || c >= table.Cols) continue;
             var box = new Rectangle(RowHeadersWidth - HorizontalScrollingOffset + c * width, ColumnHeadersHeight - VerticalScrollingOffset + r * height, width - 1, height - 1);
             var line = (int)MathF.Round(stroke * (0.5f + 2f * share));
             // Dark around light: one of the two shows on any cell.
@@ -352,7 +352,7 @@ public sealed class TableGrid : DataGridView {
     protected override void Dispose(bool disposing) {
         if (disposing) {
             Document.Changed -= Reload;
-            _hitFont?.Dispose();
+            hitFont?.Dispose();
         }
         base.Dispose(disposing);
     }
@@ -373,41 +373,41 @@ public sealed class TableGrid : DataGridView {
 
     /// <summary>Where a cell lies between the smallest value of the table (0) and the largest (1).</summary>
     private double Warmth(int row, int col) =>
-        _max > _min ? (ParamAccess.CellDisplay(Document.Image, Def, row, col) - _min) / (_max - _min) : 0.5;
+        max > min ? (ParamAccess.CellDisplay(Document.Image, Def, row, col) - min) / (max - min) : 0.5;
 
     /// <summary>Takes in the document as it is now: after a change, an undo or a redo.</summary>
     private void Reload() {
-        if (ReferenceEquals(_shown, Document.Image)) return;
-        _shown = Document.Image;
-        _decimals = TableEdit.Decimals(_shown, Def);
-        (_min, _max) = (float.MaxValue, float.MinValue);
-        for (var row = 0; row < _table.Rows; row++) {
-            for (var col = 0; col < _table.Cols; col++) {
-                var value = ParamAccess.CellDisplay(_shown, Def, row, col);
-                (_min, _max) = (MathF.Min(_min, value), MathF.Max(_max, value));
+        if (ReferenceEquals(shown, Document.Image)) return;
+        shown = Document.Image;
+        decimals = TableEdit.Decimals(shown, Def);
+        (min, max) = (float.MaxValue, float.MinValue);
+        for (var row = 0; row < table.Rows; row++) {
+            for (var col = 0; col < table.Cols; col++) {
+                var value = ParamAccess.CellDisplay(shown, Def, row, col);
+                (min, max) = (MathF.Min(min, value), MathF.Max(max, value));
             }
         }
-        for (var col = 0; col < _table.Cols; col++) Columns[col].HeaderText = $"{Def.ColAxis.Label} {ColumnHeader(col)}";
-        for (var row = 0; row < _table.Rows; row++) Rows[row].HeaderCell.Value = $"{Def.RowAxis.Label} {RowHeader(row)}";
+        for (var col = 0; col < table.Cols; col++) Columns[col].HeaderText = $"{Def.ColAxis.Label} {ColumnHeader(col)}";
+        for (var row = 0; row < table.Rows; row++) Rows[row].HeaderCell.Value = $"{Def.RowAxis.Label} {RowHeader(row)}";
         Measure();
         Invalidate();
     }
 
     /// <summary>Sizes rows, columns and headers to the font and to the widest text they hold.</summary>
     private void Measure() {
-        if (_shown is not { } image) return;
+        if (shown is not { } image) return;
         var before = (RowHeadersWidth, ColumnHeadersHeight, Columns[0].Width, Rows[0].Height);
-        _hitFont?.Dispose();
-        _hitFont = Hits is null ? null : new Font(Font.FontFamily, Font.SizeInPoints * 0.72f);
+        hitFont?.Dispose();
+        hitFont = Hits is null ? null : new Font(Font.FontFamily, Font.SizeInPoints * 0.72f);
         int Widest(IEnumerable<string> texts) => texts.DefaultIfEmpty("").Max(t => TextRenderer.MeasureText(t, Font, Size.Empty, TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine).Width);
         var pad = Font.Height * 3 / 4;
-        var cells = Enumerable.Range(0, _table.Rows).SelectMany(row => Enumerable.Range(0, _table.Cols).Select(col => TableEdit.CellText(image, Def, row, col)));
-        var columnWidth = Widest(cells.Concat(Enumerable.Range(0, _table.Cols).Select(ColumnHeader))) + pad;
-        var rowHeight = Font.Height + Font.Height / 2 + (_hitFont?.Height ?? 0);
+        var cells = Enumerable.Range(0, table.Rows).SelectMany(row => Enumerable.Range(0, table.Cols).Select(col => TableEdit.CellText(image, Def, row, col)));
+        var columnWidth = Widest(cells.Concat(Enumerable.Range(0, table.Cols).Select(ColumnHeader))) + pad;
+        var rowHeight = Font.Height + Font.Height / 2 + (hitFont?.Height ?? 0);
         foreach (DataGridViewColumn column in Columns) column.Width = columnWidth;
         RowTemplate.Height = rowHeight;
         foreach (DataGridViewRow row in Rows) row.Height = rowHeight;
-        RowHeadersWidth = Widest(Enumerable.Range(0, _table.Rows).Select(RowHeader)) + pad;
+        RowHeadersWidth = Widest(Enumerable.Range(0, table.Rows).Select(RowHeader)) + pad;
         ColumnHeadersHeight = Font.Height + Font.Height / 2;
         if (before != (RowHeadersWidth, ColumnHeadersHeight, columnWidth, rowHeight)) ContentSizeChanged?.Invoke();
     }

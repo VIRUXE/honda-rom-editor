@@ -8,21 +8,21 @@ public sealed record EditTransaction(string Label, IReadOnlyList<RomEdit> Edits)
 
 /// <summary>A ROM being edited: the current image plus its undo/redo history.</summary>
 public sealed class RomDocument(RomImage image) {
-    private readonly Stack<EditTransaction> _done = new();
-    private readonly Stack<EditTransaction> _undone = new();
-    private EditTransaction? _saved;
+    private readonly Stack<EditTransaction> done = new();
+    private readonly Stack<EditTransaction> undone = new();
+    private EditTransaction? saved;
 
     public RomImage Image { get; private set; } = image;
 
     public event Action? Changed;
 
-    public bool CanUndo => _done.Count > 0;
-    public bool CanRedo => _undone.Count > 0;
-    public string? UndoLabel => CanUndo ? _done.Peek().Label : null;
-    public string? RedoLabel => CanRedo ? _undone.Peek().Label : null;
+    public bool CanUndo => done.Count > 0;
+    public bool CanRedo => undone.Count > 0;
+    public string? UndoLabel => CanUndo ? done.Peek().Label : null;
+    public string? RedoLabel => CanRedo ? undone.Peek().Label : null;
 
     /// <summary>Whether the image differs from the last saved state.</summary>
-    public bool IsDirty => !ReferenceEquals(_done.Count > 0 ? _done.Peek() : null, _saved);
+    public bool IsDirty => !ReferenceEquals(done.Count > 0 ? done.Peek() : null, saved);
 
     /// <summary>
     /// Takes the current state as the saved one. <paramref name="written"/> is the image as it
@@ -30,7 +30,7 @@ public sealed class RomDocument(RomImage image) {
     /// that correction is not a step to undo.
     /// </summary>
     public void MarkSaved(RomImage? written = null) {
-        _saved = _done.Count > 0 ? _done.Peek() : null;
+        saved = done.Count > 0 ? done.Peek() : null;
         if (written is null || written.Bytes.SequenceEqual(Image.Bytes)) return;
         ArgumentOutOfRangeException.ThrowIfNotEqual(written.Length, Image.Length);
         Image = written;
@@ -47,25 +47,25 @@ public sealed class RomDocument(RomImage image) {
         var edits = new List<RomEdit>();
         for (var at = 0; at < updated.Length; at++)
             if (Image[at] != updated[at]) edits.Add(new RomEdit(at, Image[at], updated[at]));
-        _done.Push(new EditTransaction(label, edits));
-        _undone.Clear();
+        done.Push(new EditTransaction(label, edits));
+        undone.Clear();
         Image = updated;
         Changed?.Invoke();
         return true;
     }
 
     public bool Undo() {
-        if (!_done.TryPop(out var step)) return false;
+        if (!done.TryPop(out var step)) return false;
         Image = Image.With(step.Edits.Select(e => (e.Address, e.Old)));
-        _undone.Push(step);
+        undone.Push(step);
         Changed?.Invoke();
         return true;
     }
 
     public bool Redo() {
-        if (!_undone.TryPop(out var step)) return false;
+        if (!undone.TryPop(out var step)) return false;
         Image = Image.With(step.Edits.Select(e => (e.Address, e.New)));
-        _done.Push(step);
+        done.Push(step);
         Changed?.Invoke();
         return true;
     }

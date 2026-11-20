@@ -14,7 +14,7 @@ public sealed class TableSurface : TableChart {
     private const float LowestTilt = 5f;
     private const float HighestTilt = 85f;
 
-    private (Point At, float Turn, float Tilt, bool Moved)? _press;
+    private (Point At, float Turn, float Tilt, bool Moved)? press;
 
     public TableSurface(TableGrid grid) : base(grid, "Surface") => Changed();
 
@@ -147,27 +147,27 @@ public sealed class TableSurface : TableChart {
     protected override void OnMouseDown(MouseEventArgs e) {
         base.OnMouseDown(e);
         Select();
-        if (e.Button == MouseButtons.Left) _press = (e.Location, Turn, Tilt, false);
+        if (e.Button == MouseButtons.Left) press = (e.Location, Turn, Tilt, false);
     }
 
     protected override void OnMouseMove(MouseEventArgs e) {
         base.OnMouseMove(e);
-        if (_press is not { } press || !e.Button.HasFlag(MouseButtons.Left)) {
-            _press = null;
+        if (this.press is not { } press || !e.Button.HasFlag(MouseButtons.Left)) {
+            this.press = null;
             return;
         }
         var (dx, dy) = (e.X - press.At.X, e.Y - press.At.Y);
         // A hand that clicks moves a little; that is not yet a turn.
         if (!press.Moved && Math.Abs(dx) + Math.Abs(dy) < SystemInformation.DragSize.Width) return;
-        _press = press with { Moved = true };
+        this.press = press with { Moved = true };
         // The width of the picture is a turn of 180 degrees, wherever it is taken hold of.
         TurnTo(press.Turn - dx * 180f / Math.Max(Width, 1), press.Tilt + dy * 180f / Math.Max(Width, 1));
     }
 
     protected override void OnMouseUp(MouseEventArgs e) {
         base.OnMouseUp(e);
-        if (_press is { Moved: false } press && e.Button == MouseButtons.Left) ClickAt(press.At);
-        _press = null;
+        if (this.press is { Moved: false } press && e.Button == MouseButtons.Left) ClickAt(press.At);
+        this.press = null;
     }
 
     protected override void OnKeyDown(KeyEventArgs e) {
@@ -183,28 +183,28 @@ public sealed class TableSurface : TableChart {
 
     /// <summary>The surface as it is seen now, placed in an area: where each corner falls.</summary>
     private readonly struct View {
-        private readonly TableSurface _owner;
-        private readonly float _min;
-        private readonly float _max;
-        private readonly float _scale;
-        private readonly PointF _origin;
+        private readonly TableSurface owner;
+        private readonly float min;
+        private readonly float max;
+        private readonly float scale;
+        private readonly PointF origin;
 
         public View(TableSurface owner, Rectangle area) {
-            _owner = owner;
-            (_min, _max, _, _) = owner.Extent();
+            this.owner = owner;
+            (min, max, _, _) = owner.Extent();
             // Room for what is written around it; the base keeps its size while it is turned.
             var (side, above, below) = (owner.Em(2.5f), owner.Em(0.8f), owner.Em(2.4f));
             var (up, flat) = MathF.SinCos(owner.Tilt * MathF.PI / 180f);
             var (across, depth, height) = (MathF.Sqrt(2f), MathF.Sqrt(2f) * up, ChartMath.SurfaceHeight * flat);
-            _scale = Math.Max(1f, Math.Min((area.Width - 2 * side) / across, (area.Height - above - below) / (depth + height)));
-            var free = area.Height - above - below - (depth + height) * _scale;
-            _origin = new PointF(area.Left + area.Width / 2f, area.Top + above + free / 2f + (height + depth / 2f) * _scale);
+            scale = Math.Max(1f, Math.Min((area.Width - 2 * side) / across, (area.Height - above - below) / (depth + height)));
+            var free = area.Height - above - below - (depth + height) * scale;
+            origin = new PointF(area.Left + area.Width / 2f, area.Top + above + free / 2f + (height + depth / 2f) * scale);
         }
 
         /// <summary>Where the corner of a cell is, at the height of its value.</summary>
         public PointF Corner(int row, int col) {
-            var value = _owner.Value(new CellRef(row, col));
-            return At(row, col, _max > _min ? (value - _min) / (_max - _min) * ChartMath.SurfaceHeight : ChartMath.SurfaceHeight / 2f);
+            var value = owner.Value(new CellRef(row, col));
+            return At(row, col, max > min ? (value - min) / (max - min) * ChartMath.SurfaceHeight : ChartMath.SurfaceHeight / 2f);
         }
 
         /// <summary>Where a cell is on the base, under its corner.</summary>
@@ -218,13 +218,13 @@ public sealed class TableSurface : TableChart {
 
         private PointF At(int row, int col, float z) {
             var (x, y, _) = Project(row, col, z);
-            return new PointF(_origin.X + x * _scale, _origin.Y + y * _scale);
+            return new PointF(origin.X + x * scale, origin.Y + y * scale);
         }
 
         /// <summary>The first row is at the back and the first column on the left, as in the cells laid flat.</summary>
         private (float X, float Y, float Near) Project(int row, int col, float z) => ChartMath.Project(
-            _owner.Cols > 1 ? (float)col / (_owner.Cols - 1) - 0.5f : 0f,
-            _owner.Rows > 1 ? (float)row / (_owner.Rows - 1) - 0.5f : 0f,
-            z, _owner.Turn, _owner.Tilt);
+            owner.Cols > 1 ? (float)col / (owner.Cols - 1) - 0.5f : 0f,
+            owner.Rows > 1 ? (float)row / (owner.Rows - 1) - 0.5f : 0f,
+            z, owner.Turn, owner.Tilt);
     }
 }

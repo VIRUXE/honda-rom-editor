@@ -66,16 +66,16 @@ public sealed class Project {
     private Project(string root, ProjectManifest manifest, SortedDictionary<string, bool> flags, DefinitionsFile definitions, Overlay overlay) {
         Root = root;
         Manifest = manifest;
-        _flags = flags;
+        this.flags = flags;
         Definitions = definitions;
         Overlay = overlay;
     }
 
-    private readonly SortedDictionary<string, bool> _flags;
+    private readonly SortedDictionary<string, bool> flags;
 
     public string Root { get; }
     public ProjectManifest Manifest { get; }
-    public IReadOnlyDictionary<string, bool> Flags => _flags;
+    public IReadOnlyDictionary<string, bool> Flags => flags;
     public DefinitionsFile Definitions { get; }
     public Overlay Overlay { get; set; }
     public bool FlagsDirty { get; private set; }
@@ -98,15 +98,15 @@ public sealed class Project {
     /// <summary>Writes the feature flags (when changed) and the overlay. Nothing else in the project is touched.</summary>
     public void Save() {
         if (FlagsDirty) {
-            Write(System.IO.Path.Combine(Root, Manifest.Config), ConfigInc.Render(_flags));
+            Write(System.IO.Path.Combine(Root, Manifest.Config), ConfigInc.Render(flags));
             FlagsDirty = false;
         }
         Write(System.IO.Path.Combine(Root, Manifest.Overlay), OverlayOps.ToToml(Overlay));
     }
 
     public void SetFlag(string key, bool on) {
-        if (_flags.TryGetValue(key, out var current) && current == on) return;
-        _flags[key] = on;
+        if (flags.TryGetValue(key, out var current) && current == on) return;
+        flags[key] = on;
         FlagsDirty = true;
     }
 

@@ -10,20 +10,20 @@ namespace HRE.App;
 /// </summary>
 public sealed class TableGraph : TableChart {
     /// <summary>Whether a line runs down a column, with a point for each row.</summary>
-    private readonly bool _alongRows;
+    private readonly bool alongRows;
 
-    private Drag? _drag;
+    private Drag? drag;
 
     public TableGraph(TableGrid grid) : base(grid, "Graph") {
-        _alongRows = Rows > 1;
+        alongRows = Rows > 1;
         Changed();
     }
 
-    private int Points => _alongRows ? Rows : Cols;
-    private int Lines => _alongRows ? Cols : Rows;
+    private int Points => alongRows ? Rows : Cols;
+    private int Lines => alongRows ? Cols : Rows;
 
     /// <summary>The line that stands out: that of the cell being dragged, or of the cell the keyboard is on.</summary>
-    private int ShownLine => Place(_drag?.Cell ?? Current).Line;
+    private int ShownLine => Place(drag?.Cell ?? Current).Line;
 
     /// <summary>Where the point of a cell is in the picture, as it is drawn now.</summary>
     internal PointF PointOf(int row, int col) {
@@ -40,13 +40,13 @@ public sealed class TableGraph : TableChart {
     internal void Press(Point at) {
         if (CellAt(at) is not { } cell) return;
         if (!Grid[cell.Col, cell.Row].Selected || Grid.SelectedCells.Count == 1) GoTo(cell);
-        if (!Grid.ReadOnly) _drag = new Drag(cell, at.Y, PlotIn(Area).PerPixel);
+        if (!Grid.ReadOnly) drag = new Drag(cell, at.Y, PlotIn(Area).PerPixel);
         Invalidate();
     }
 
     /// <summary>The mouse moved with the button down: the dragged cells follow it, shown where they would be stored.</summary>
     internal void DragTo(Point at) {
-        if (_drag is not { } drag) return;
+        if (this.drag is not { } drag) return;
         var (least, most) = TableEdit.Range(Image, Def, drag.Cell.Col);
         var value = Value(drag.Cell);
         drag.Amount = Math.Clamp((drag.StartY - at.Y) * drag.PerPixel, least - value, most - value);
@@ -55,8 +55,8 @@ public sealed class TableGraph : TableChart {
 
     /// <summary>The mouse button went up: what was dragged is changed, as one step.</summary>
     internal void Release() {
-        if (_drag is not { } drag) return;
-        _drag = null;
+        if (this.drag is not { } drag) return;
+        this.drag = null;
         // By what the dragged cell moved, to the nearest value it can hold; the others selected with it move as far.
         var amount = TableEdit.Nearest(Image, Def, drag.Cell.Col, Value(drag.Cell) + drag.Amount) - Value(drag.Cell);
         if (amount != 0f) Grid.Add(amount);
@@ -67,8 +67,8 @@ public sealed class TableGraph : TableChart {
     internal bool Key(Keys key) {
         var (line, point) = Place(Current);
         switch (key) {
-            case Keys.Escape when _drag is not null:
-                _drag = null;
+            case Keys.Escape when drag is not null:
+                drag = null;
                 Invalidate();
                 return true;
             case Keys.Left:
@@ -95,7 +95,7 @@ public sealed class TableGraph : TableChart {
             if (Value(Cell(line, i)) < Value(Cell(line, low))) low = i;
             if (Value(Cell(line, i)) > Value(Cell(line, high))) high = i;
         }
-        var along = _alongRows ? Def.RowAxis.Label : Def.ColAxis.Label;
+        var along = alongRows ? Def.RowAxis.Label : Def.ColAxis.Label;
         var current = Current;
         return $"The line of {LineName(line)}. Smallest {ValueText(Value(Cell(line, low)))} at {along} {PointName(low)}; largest {ValueText(Value(Cell(line, high)))} at {along} {PointName(high)}. " +
             $"{Grid.CellName(current.Row, current.Col)} is {ValueText(Value(current))}.";
@@ -123,7 +123,7 @@ public sealed class TableGraph : TableChart {
         var widest = Enumerable.Range(0, Points).Max(i => Measure(PointName(i)).Width);
         var every = Points > 1 ? Math.Max(1, (int)MathF.Ceiling((widest + Em(0.6f)) / (plot.X(1) - plot.X(0)))) : 1;
         for (var i = 0; i < Points; i += every) Write(g, PointName(i), plot.X(i), plot.Area.Bottom + Em(0.3f), DarkTheme.TextDim, align: 0);
-        Write(g, _alongRows ? Def.RowAxis.Label : Def.ColAxis.Label, plot.Area.Left + plot.Area.Width / 2f, plot.Area.Bottom + Em(1.4f), DarkTheme.TextDim, align: 0);
+        Write(g, alongRows ? Def.RowAxis.Label : Def.ColAxis.Label, plot.Area.Left + plot.Area.Width / 2f, plot.Area.Bottom + Em(1.4f), DarkTheme.TextDim, align: 0);
 
         PointF[] LinePoints(int line) => [.. Enumerable.Range(0, Points).Select(i => new PointF(plot.X(i), plot.Y(Shown(Cell(line, i)))))];
         var state = g.Save();
@@ -139,7 +139,7 @@ public sealed class TableGraph : TableChart {
         }
 
         var radius = Math.Max(3f, Font.Height / 4.5f);
-        var current = _drag?.Cell ?? Current;
+        var current = drag?.Cell ?? Current;
         using var around = new Pen(DarkTheme.Background, 2f);
         using var ring = new Pen(DarkTheme.Text, Math.Max(2f, Font.Height / 9f));
         foreach (var at in Enumerable.Range(0, Points).Select(i => Cell(shown, i))) {
@@ -173,13 +173,13 @@ public sealed class TableGraph : TableChart {
 
     protected override void OnMouseMove(MouseEventArgs e) {
         base.OnMouseMove(e);
-        if (_drag is null) {
+        if (drag is null) {
             Cursor = !Grid.ReadOnly && CellAt(e.Location) is not null ? Cursors.SizeNS : Cursors.Default;
         } else if (e.Button.HasFlag(MouseButtons.Left)) {
             DragTo(e.Location);
         } else {
             // The button was let go where this window did not see it.
-            _drag = null;
+            drag = null;
             Invalidate();
         }
     }
@@ -194,18 +194,18 @@ public sealed class TableGraph : TableChart {
         if (!e.Handled) e.Handled = Key(e.KeyData);
     }
 
-    private CellRef Cell(int line, int point) => _alongRows ? new CellRef(point, line) : new CellRef(line, point);
+    private CellRef Cell(int line, int point) => alongRows ? new CellRef(point, line) : new CellRef(line, point);
 
-    private (int Line, int Point) Place(CellRef cell) => _alongRows ? (cell.Col, cell.Row) : (cell.Row, cell.Col);
+    private (int Line, int Point) Place(CellRef cell) => alongRows ? (cell.Col, cell.Row) : (cell.Row, cell.Col);
 
-    private string PointName(int point) => _alongRows ? Grid.RowHeader(point) : Grid.ColumnHeader(point);
+    private string PointName(int point) => alongRows ? Grid.RowHeader(point) : Grid.ColumnHeader(point);
 
-    private string LineName(int line) => _alongRows ? $"{Def.ColAxis.Label} {Grid.ColumnHeader(line)}" : $"{Def.RowAxis.Label} {Grid.RowHeader(line)}";
+    private string LineName(int line) => alongRows ? $"{Def.ColAxis.Label} {Grid.ColumnHeader(line)}" : $"{Def.RowAxis.Label} {Grid.RowHeader(line)}";
 
     /// <summary>What a cell shows in the picture: its value, or while it is dragged the value it would be given.</summary>
     private float Shown(CellRef cell) {
         var value = Value(cell);
-        if (_drag is not { } drag || drag.Amount == 0f) return value;
+        if (this.drag is not { } drag || drag.Amount == 0f) return value;
         var dragged = cell == drag.Cell || (Grid[drag.Cell.Col, drag.Cell.Row].Selected && Grid[cell.Col, cell.Row].Selected);
         return dragged ? TableEdit.Nearest(Image, Def, cell.Col, value + drag.Amount) : value;
     }

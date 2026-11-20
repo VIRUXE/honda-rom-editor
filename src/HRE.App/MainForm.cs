@@ -22,37 +22,37 @@ public sealed partial class MainForm : Form {
 
     private static readonly Guid SaveRomDialog = new("6f6f2a55-7c0b-4a5e-9a57-1d2f7f1c8e02");
 
-    private readonly IReadOnlyList<DefinitionPack> _packs;
-    private readonly IReadOnlyList<ProjectException> _packErrors;
-    private readonly AppSettings _settings;
+    private readonly IReadOnlyList<DefinitionPack> packs;
+    private readonly IReadOnlyList<ProjectException> packErrors;
+    private readonly AppSettings settings;
 
-    private IReadOnlyList<PageBlock>? _problem;
-    private Font? _bodyFont;
-    private Font? _groupFont;
-    private Font? _barFont;
+    private IReadOnlyList<PageBlock>? problem;
+    private Font? bodyFont;
+    private Font? groupFont;
+    private Font? barFont;
 
     public MainForm(IReadOnlyList<DefinitionPack> packs, IReadOnlyList<ProjectException> packErrors, AppSettings settings) {
-        _packs = packs;
-        _packErrors = packErrors;
-        _settings = settings;
+        this.packs = packs;
+        this.packErrors = packErrors;
+        this.settings = settings;
 
         AskAboutChanges = AskInDialog;
         InitializeComponent();
         // The name is the program's: the designer holds it too, in the title and the About command.
         Text = AppName;
-        _aboutItem.Text = $"&About {AppName}";
-        foreach (ToolStripMenuItem top in _menu.Items) {
+        aboutItem.Text = $"&About {AppName}";
+        foreach (ToolStripMenuItem top in menu.Items) {
             foreach (var item in top.DropDownItems.OfType<ToolStripMenuItem>()) Describe(item);
         }
 
         PlaceWindow();
-        _split.SplitterWidth = LogicalToDeviceUnits(7);
-        _split.Panel1MinSize = LogicalToDeviceUnits(160);
+        split.SplitterWidth = LogicalToDeviceUnits(7);
+        split.Panel1MinSize = LogicalToDeviceUnits(160);
 
-        _page.ActionInvoked += RunPageAction;
-        _page.TechnicalToggled += ToggleTechnical;
-        _page.Announced += Announce;
-        _page.ShowTechnical = _settings.ShowTechnical;
+        page.ActionInvoked += RunPageAction;
+        page.TechnicalToggled += ToggleTechnical;
+        page.Announced += Announce;
+        page.ShowTechnical = this.settings.ShowTechnical;
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
 
         ApplyTheme();
@@ -63,9 +63,9 @@ public sealed partial class MainForm : Form {
     /// <summary>The ROM that is open; null when none is.</summary>
     public RomSession? Session { get; private set; }
 
-    internal TreeView Tree => _tree;
-    internal PageView Page => _page;
-    internal IEnumerable<string> StatusTexts => new[] { _statusFile, _statusChanges, _statusKind, _statusChecksum }.Where(l => l.Available).Select(l => l.Text ?? "");
+    internal TreeView Tree => tree;
+    internal PageView Page => page;
+    internal IEnumerable<string> StatusTexts => new[] { statusFile, statusChanges, statusKind, statusChecksum }.Where(l => l.Available).Select(l => l.Text ?? "");
 
     /// <summary>
     /// Asks what to do with the changes to the named file, which are not saved, before its ROM is
@@ -80,28 +80,28 @@ public sealed partial class MainForm : Form {
     /// open. So it does when the open ROM has changes and the user chooses to go back to them.
     /// </summary>
     public void OpenRom(string path) {
-        switch (RomSession.Open(path, _packs)) {
+        switch (RomSession.Open(path, packs)) {
             case OpenResult.Opened opened:
                 if (!LeaveRom()) break;
                 Session = opened.Session;
                 // What a page says of a table follows the table as it is changed; so do the commands that undo and save.
                 Session.Document.Changed += () => {
-                    _page.Revise(BuildPage());
+                    page.Revise(BuildPage());
                     ShowEditState();
                 };
-                _problem = null;
-                _settings.Remember(Session.Path);
+                problem = null;
+                settings.Remember(Session.Path);
                 ShowSession();
                 Announce($"Opened {Session.FileName}. Recognised as {Session.Pack.Name}. {ChecksumWords(Session.Checksum)}.");
                 break;
             case OpenResult.Refused refused:
-                if (refused.Problem == OpenProblem.NotFound) _settings.Forget(refused.Path);
+                if (refused.Problem == OpenProblem.NotFound) settings.Forget(refused.Path);
                 // The start page has its own button to open a file; one is enough.
-                _problem = Details.Problem(refused, _packs.Count == 0 ? 0 : _packs.Min(p => p.RomSize), offerOpen: Session is not null);
+                problem = Details.Problem(refused, packs.Count == 0 ? 0 : packs.Min(p => p.RomSize), offerOpen: Session is not null);
                 ShowRecentFiles();
                 ShowPage();
-                _page.FocusFirst();
-                if (_problem[0] is PageBlock.Notice notice) Announce($"{notice.Heading}. {notice.Body}");
+                page.FocusFirst();
+                if (problem[0] is PageBlock.Notice notice) Announce($"{notice.Heading}. {notice.Body}");
                 break;
         }
     }
@@ -110,7 +110,7 @@ public sealed partial class MainForm : Form {
     public bool CloseRom() {
         if (!LeaveRom()) return false;
         Session = null;
-        _problem = null;
+        problem = null;
         ShowSession();
         return true;
     }
@@ -137,7 +137,7 @@ public sealed partial class MainForm : Form {
     /// <summary>Takes back the last change.</summary>
     public void Undo() {
         // While a number is being typed into a cell, the key belongs to the typing.
-        if (_page.Grid is { IsCurrentCellInEditMode: true, EditingControl: TextBox typing }) {
+        if (page.Grid is { IsCurrentCellInEditMode: true, EditingControl: TextBox typing }) {
             typing.Undo();
             return;
         }
@@ -148,7 +148,7 @@ public sealed partial class MainForm : Form {
 
     /// <summary>Makes the change again that was taken back last.</summary>
     public void Redo() {
-        if (_page.Grid is { IsCurrentCellInEditMode: true }) return;
+        if (page.Grid is { IsCurrentCellInEditMode: true }) return;
         if (Session?.Document is not { RedoLabel: { } label } document) return;
         document.Redo();
         Tell($"Redone: {label}");
@@ -160,22 +160,22 @@ public sealed partial class MainForm : Form {
     /// </summary>
     internal bool SaveTo(string path) {
         if (Session is not { } session) return false;
-        _page.FinishTyping();
+        page.FinishTyping();
         switch (session.Save(path)) {
             case SaveResult.Saved saved:
-                _settings.Remember(saved.Path);
-                _problem = saved.Backup is null ? null : Details.KeptCopy(saved);
+                settings.Remember(saved.Path);
+                problem = saved.Backup is null ? null : Details.KeptCopy(saved);
                 ShowRecentFiles();
                 ShowEditState();
                 ShowStatus();
-                _page.Revise(BuildPage());
+                page.Revise(BuildPage());
                 Tell(Details.Said(saved));
                 return true;
             case SaveResult.Refused refused:
-                _problem = Details.Problem(refused);
+                problem = Details.Problem(refused);
                 ShowPage();
-                _page.FocusFirst();
-                if (_problem[0] is PageBlock.Notice notice) Announce($"{notice.Heading}. {notice.Body}");
+                page.FocusFirst();
+                if (problem[0] is PageBlock.Notice notice) Announce($"{notice.Heading}. {notice.Body}");
                 return false;
             default:
                 return false;
@@ -184,9 +184,9 @@ public sealed partial class MainForm : Form {
 
     /// <summary>Selects a table or a setting in the list by name. Returns false when the open ROM has none of that name.</summary>
     public bool SelectParam(string name) {
-        var node = _tree.Nodes.Cast<TreeNode>().SelectMany(Descendants).FirstOrDefault(n => n.Tag is ParamDef def && def.Name == name);
+        var node = tree.Nodes.Cast<TreeNode>().SelectMany(Descendants).FirstOrDefault(n => n.Tag is ParamDef def && def.Name == name);
         if (node is null) return false;
-        _tree.SelectedNode = node;
+        tree.SelectedNode = node;
         node.EnsureVisible();
         ShowPage();
         return true;
@@ -194,14 +194,14 @@ public sealed partial class MainForm : Form {
 
     /// <summary>Tells the user that the program itself went wrong, at the top of the page, and keeps running.</summary>
     public void ReportFault(Exception fault) {
-        _problem = Details.Fault(fault);
+        problem = Details.Fault(fault);
         ShowPage();
         Announce("Something went wrong in Honda ROM Editor. Your files were not changed.");
     }
 
     protected override void OnShown(EventArgs e) {
         base.OnShown(e);
-        if (Session is null) _page.FocusFirst();
+        if (Session is null) page.FocusFirst();
     }
 
     protected override void OnDragEnter(DragEventArgs drgevent) {
@@ -217,8 +217,8 @@ public sealed partial class MainForm : Form {
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
         // F6 moves between the list and the page, as in Explorer.
         if (keyData is not (Keys.F6 or (Keys.Shift | Keys.F6))) return base.ProcessCmdKey(ref msg, keyData);
-        if (!_split.Panel1Collapsed && !_tree.ContainsFocus) _tree.Select();
-        else _page.FocusFirst();
+        if (!split.Panel1Collapsed && !tree.ContainsFocus) tree.Select();
+        else page.FocusFirst();
         return true;
     }
 
@@ -236,17 +236,17 @@ public sealed partial class MainForm : Form {
             return;
         }
         var bounds = WindowState == FormWindowState.Normal ? Bounds : RestoreBounds;
-        _settings.Window = new WindowPlace(bounds.X, bounds.Y, bounds.Width, bounds.Height, WindowState == FormWindowState.Maximized);
-        if (!_split.Panel1Collapsed) _settings.ListWidth = (int)(_split.SplitterDistance * 96 / DeviceDpi / _settings.TextZoom);
+        settings.Window = new WindowPlace(bounds.X, bounds.Y, bounds.Width, bounds.Height, WindowState == FormWindowState.Maximized);
+        if (!split.Panel1Collapsed) settings.ListWidth = (int)(split.SplitterDistance * 96 / DeviceDpi / settings.TextZoom);
     }
 
     protected override void Dispose(bool disposing) {
         if (disposing) {
             components?.Dispose();
             SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
-            _bodyFont?.Dispose();
-            _groupFont?.Dispose();
-            _barFont?.Dispose();
+            bodyFont?.Dispose();
+            groupFont?.Dispose();
+            barFont?.Dispose();
         }
         base.Dispose(disposing);
     }
@@ -269,7 +269,7 @@ public sealed partial class MainForm : Form {
     private void Describe(ToolStripMenuItem item, string? description = null) {
         if (description is not null) item.AccessibleDescription = description;
         item.SelectedChanged += (_, _) => {
-            if (item.Selected) _statusFile.Text = item.AccessibleDescription;
+            if (item.Selected) statusFile.Text = item.AccessibleDescription;
             else ShowStatus();
         };
     }
@@ -290,9 +290,9 @@ public sealed partial class MainForm : Form {
 
     private void TechnicalItem_Click(object? sender, EventArgs e) => ToggleTechnical();
 
-    private void LargerItem_Click(object? sender, EventArgs e) => SetZoom(_settings.TextZoom + ZoomStep);
+    private void LargerItem_Click(object? sender, EventArgs e) => SetZoom(settings.TextZoom + ZoomStep);
 
-    private void SmallerItem_Click(object? sender, EventArgs e) => SetZoom(_settings.TextZoom - ZoomStep);
+    private void SmallerItem_Click(object? sender, EventArgs e) => SetZoom(settings.TextZoom - ZoomStep);
 
     private void NormalItem_Click(object? sender, EventArgs e) => SetZoom(1.0);
 
@@ -305,7 +305,7 @@ public sealed partial class MainForm : Form {
     private void AboutItem_Click(object? sender, EventArgs e) => ShowAbout();
 
     private void Tree_AfterSelect(object? sender, TreeViewEventArgs e) {
-        _problem = null;
+        problem = null;
         ShowPage();
     }
 
@@ -313,11 +313,11 @@ public sealed partial class MainForm : Form {
     private void Tree_BeforeCollapse(object? sender, TreeViewCancelEventArgs e) => e.Cancel = true;
 
     /// <summary>The selected row is outlined only while the list has the focus.</summary>
-    private void Tree_FocusChanged(object? sender, EventArgs e) => _tree.Invalidate();
+    private void Tree_FocusChanged(object? sender, EventArgs e) => tree.Invalidate();
 
     /// <summary>Starts where the window was last time, when that place is still on a screen; otherwise centred, no larger than the screen.</summary>
     private void PlaceWindow() {
-        if (_settings.Window is { } place && Screen.AllScreens.Any(s => s.WorkingArea.IntersectsWith(new Rectangle(place.X, place.Y, place.Width, place.Height)))) {
+        if (settings.Window is { } place && Screen.AllScreens.Any(s => s.WorkingArea.IntersectsWith(new Rectangle(place.X, place.Y, place.Width, place.Height)))) {
             StartPosition = FormStartPosition.Manual;
             Bounds = new Rectangle(place.X, place.Y, place.Width, place.Height);
             if (place.Maximised) WindowState = FormWindowState.Maximized;
@@ -353,46 +353,46 @@ public sealed partial class MainForm : Form {
                 SaveAs();
                 break;
             case PageCommand.Dismiss:
-                _problem = null;
+                problem = null;
                 ShowPage();
-                if (!_page.FocusFirst()) _tree.Select();
+                if (!page.FocusFirst()) tree.Select();
                 break;
         }
     }
 
     private void ToggleTechnical() {
-        _settings.ShowTechnical = !_settings.ShowTechnical;
-        _technicalItem.Checked = _settings.ShowTechnical;
-        _page.ShowTechnical = _settings.ShowTechnical;
-        Announce(_settings.ShowTechnical ? "Technical details shown" : "Technical details hidden");
+        settings.ShowTechnical = !settings.ShowTechnical;
+        technicalItem.Checked = settings.ShowTechnical;
+        page.ShowTechnical = settings.ShowTechnical;
+        Announce(settings.ShowTechnical ? "Technical details shown" : "Technical details hidden");
     }
 
     private void SetZoom(double zoom) {
-        _settings.TextZoom = Math.Clamp(Math.Round(zoom, 1), AppSettings.SmallestZoom, AppSettings.LargestZoom);
+        settings.TextZoom = Math.Clamp(Math.Round(zoom, 1), AppSettings.SmallestZoom, AppSettings.LargestZoom);
         ApplyTextSize();
-        Announce($"Text size {_settings.TextZoom:P0}");
+        Announce($"Text size {settings.TextZoom:P0}");
     }
 
     /// <summary>Rebuilds the list, the page, the status bar and the title for the current session.</summary>
     private void ShowSession() {
-        using (_tree.SuspendPainting()) {
-            _tree.Nodes.Clear();
+        using (tree.SuspendPainting()) {
+            tree.Nodes.Clear();
             if (Session is { } session) {
                 var overview = new TreeNode("Overview") { Tag = session, ToolTipText = "What this file is" };
-                _tree.Nodes.Add(overview);
+                tree.Nodes.Add(overview);
                 foreach (var category in ParamTree.Build(session.Defs)) {
                     var group = new TreeNode(category.Name) { Tag = category, ToolTipText = Details.Count(category.Params) };
                     foreach (var def in category.Params) {
                         group.Nodes.Add(new TreeNode(def.Name) { Tag = def, ToolTipText = def.Doc.Length > 0 ? def.Doc : Details.KindText(def) });
                     }
-                    _tree.Nodes.Add(group);
+                    tree.Nodes.Add(group);
                 }
-                _tree.ExpandAll();
-                _tree.SelectedNode = overview;
+                tree.ExpandAll();
+                tree.SelectedNode = overview;
             }
         }
         // With no file open there is nothing to list: the page has the whole window.
-        _split.Panel1Collapsed = Session is null;
+        split.Panel1Collapsed = Session is null;
         ShowEditState();
         ShowRecentFiles();
         ShowStatus();
@@ -404,7 +404,7 @@ public sealed partial class MainForm : Form {
     /// up. What is being typed counts as a change.
     /// </summary>
     private bool LeaveRom() {
-        _page.FinishTyping();
+        page.FinishTyping();
         if (Session is not { Document.IsDirty: true } session) return true;
         return AskAboutChanges(session.FileName) switch {
             ChangesAnswer.Save => Save(),
@@ -414,7 +414,7 @@ public sealed partial class MainForm : Form {
     }
 
     private ChangesAnswer AskInDialog(string fileName) {
-        using var ask = new ChangesForm(fileName, _barFont ?? Font);
+        using var ask = new ChangesForm(fileName, barFont ?? Font);
         ask.ShowDialog(this);
         return ask.Answer;
     }
@@ -427,56 +427,56 @@ public sealed partial class MainForm : Form {
         var document = Session?.Document;
         // A name with an ampersand in it must not make an access key.
         static string Named(string command, string? step) => step is null ? command : $"{command} {step.Replace("&", "&&")}";
-        _undoItem.Text = Named("&Undo", document?.UndoLabel);
-        _redoItem.Text = Named("&Redo", document?.RedoLabel);
-        _undoItem.Enabled = document?.CanUndo == true;
-        _redoItem.Enabled = document?.CanRedo == true;
-        _closeItem.Enabled = _saveItem.Enabled = _saveAsItem.Enabled = Session is not null;
+        undoItem.Text = Named("&Undo", document?.UndoLabel);
+        redoItem.Text = Named("&Redo", document?.RedoLabel);
+        undoItem.Enabled = document?.CanUndo == true;
+        redoItem.Enabled = document?.CanRedo == true;
+        closeItem.Enabled = saveItem.Enabled = saveAsItem.Enabled = Session is not null;
         var changed = document?.IsDirty == true;
-        _statusChanges.Available = changed;
+        statusChanges.Available = changed;
         Text = Session is null ? AppName : $"{Session.FileName}{(changed ? " (changes not saved)" : "")} - {AppName}";
     }
 
     /// <summary>Shows the page of what is selected, under the problem to report when there is one.</summary>
-    private void ShowPage() => _page.Page = BuildPage();
+    private void ShowPage() => page.Page = BuildPage();
 
     private DetailPage BuildPage() {
-        var page = Session is not { } session ? Details.Start(_packs, _packErrors, _settings.RecentFiles) : _tree.SelectedNode?.Tag switch {
+        var page = Session is not { } session ? Details.Start(packs, packErrors, settings.RecentFiles) : tree.SelectedNode?.Tag switch {
             ParamDef def => Details.Param(session.Document, def),
             ParamCategory category => Details.Category(category),
             _ => Details.Rom(session),
         };
-        return _problem is null ? page : page with { Blocks = [.. _problem, .. page.Blocks] };
+        return problem is null ? page : page with { Blocks = [.. problem, .. page.Blocks] };
     }
 
     private void ShowRecentFiles() {
-        _recentMenu.DropDownItems.Clear();
+        recentMenu.DropDownItems.Clear();
         var number = 1;
-        foreach (var path in _settings.RecentFiles) {
+        foreach (var path in settings.RecentFiles) {
             var item = new ToolStripMenuItem($"&{number++}  {Path.GetFileName(path)}   ({Path.GetDirectoryName(path)})");
             item.Click += (_, _) => OpenRom(path);
             Describe(item, $"Open {path}");
-            _recentMenu.DropDownItems.Add(item);
+            recentMenu.DropDownItems.Add(item);
         }
-        if (_settings.RecentFiles.Count == 0) _recentMenu.DropDownItems.Add(new ToolStripMenuItem("No recent files") { Enabled = false });
+        if (settings.RecentFiles.Count == 0) recentMenu.DropDownItems.Add(new ToolStripMenuItem("No recent files") { Enabled = false });
     }
 
     private void ShowStatus() {
         var session = Session;
-        _statusKind.Available = _statusChecksum.Available = session is not null;
-        _statusFile.ForeColor = DarkTheme.Text;
+        statusKind.Available = statusChecksum.Available = session is not null;
+        statusFile.ForeColor = DarkTheme.Text;
         if (session is null) {
-            _statusFile.Text = "No file open";
-            _statusFile.AccessibleName = _statusFile.ToolTipText = null;
+            statusFile.Text = "No file open";
+            statusFile.AccessibleName = statusFile.ToolTipText = null;
             return;
         }
-        _statusFile.Text = session.FileName;
-        _statusFile.ToolTipText = session.Path;
-        _statusFile.AccessibleName = $"File: {session.Path}";
-        _statusKind.Text = session.Pack.Name;
-        _statusKind.ForeColor = DarkTheme.Text;
-        _statusChanges.ForeColor = DarkTheme.SeverityColor(Severity.Warning);
-        _statusKind.AccessibleName = $"Kind of ROM: {session.Pack.Name}";
+        statusFile.Text = session.FileName;
+        statusFile.ToolTipText = session.Path;
+        statusFile.AccessibleName = $"File: {session.Path}";
+        statusKind.Text = session.Pack.Name;
+        statusKind.ForeColor = DarkTheme.Text;
+        statusChanges.ForeColor = DarkTheme.SeverityColor(Severity.Warning);
+        statusKind.AccessibleName = $"Kind of ROM: {session.Pack.Name}";
 
         var (severity, tip) = session.Checksum switch {
             ChecksumState.Valid => (Severity.Good, "The self-check built into the ROM is correct: the file is intact. It is corrected each time the ROM is saved"),
@@ -484,31 +484,31 @@ public sealed partial class MainForm : Form {
             ChecksumState.None => (Severity.Info, "This kind of ROM has no self-check"),
             _ => throw new ArgumentOutOfRangeException(nameof(session)),
         };
-        _statusChecksum.Text = ChecksumWords(session.Checksum);
-        _statusChecksum.ToolTipText = tip;
-        _statusChecksum.ForeColor = session.Checksum == ChecksumState.None ? DarkTheme.TextDim : DarkTheme.SeverityColor(severity);
-        var old = _statusChecksum.Image;
-        _statusChecksum.Image = Glyphs.Render(Glyphs.For(severity), _statusChecksum.ForeColor, LogicalToDeviceUnits((int)(16 * _settings.TextZoom)));
+        statusChecksum.Text = ChecksumWords(session.Checksum);
+        statusChecksum.ToolTipText = tip;
+        statusChecksum.ForeColor = session.Checksum == ChecksumState.None ? DarkTheme.TextDim : DarkTheme.SeverityColor(severity);
+        var old = statusChecksum.Image;
+        statusChecksum.Image = Glyphs.Render(Glyphs.For(severity), statusChecksum.ForeColor, LogicalToDeviceUnits((int)(16 * settings.TextZoom)));
         old?.Dispose();
     }
 
     /// <summary>Applies the user's text size to the window: the list and the page in the body size, the bars in the system size.</summary>
     private void ApplyTextSize() {
-        var (body, group, bar) = (_bodyFont, _groupFont, _barFont);
-        _bodyFont = DarkTheme.BodyFont(Font, _settings.TextZoom);
-        _groupFont = new Font(_bodyFont, FontStyle.Bold);
-        _barFont = DarkTheme.BarFont(Font, _settings.TextZoom);
-        _tree.Font = _page.Font = _bodyFont;
-        _menu.Font = _status.Font = _barFont;
-        _tree.ItemHeight = _bodyFont.Height + LogicalToDeviceUnits(14);
-        _tree.Indent = _bodyFont.Height;
+        var (body, group, bar) = (bodyFont, groupFont, barFont);
+        bodyFont = DarkTheme.BodyFont(Font, settings.TextZoom);
+        groupFont = new Font(bodyFont, FontStyle.Bold);
+        barFont = DarkTheme.BarFont(Font, settings.TextZoom);
+        tree.Font = page.Font = bodyFont;
+        menu.Font = status.Font = barFont;
+        tree.ItemHeight = bodyFont.Height + LogicalToDeviceUnits(14);
+        tree.Indent = bodyFont.Height;
         // The list grows with its text, as far as the window allows.
-        var wanted = LogicalToDeviceUnits((int)(_settings.ListWidth * _settings.TextZoom));
-        _split.SplitterDistance = Math.Clamp(wanted, _split.Panel1MinSize, Math.Max(_split.Panel1MinSize, _split.Width / 2));
-        _status.ImageScalingSize = new Size(LogicalToDeviceUnits((int)(16 * _settings.TextZoom)), LogicalToDeviceUnits((int)(16 * _settings.TextZoom)));
+        var wanted = LogicalToDeviceUnits((int)(settings.ListWidth * settings.TextZoom));
+        split.SplitterDistance = Math.Clamp(wanted, split.Panel1MinSize, Math.Max(split.Panel1MinSize, split.Width / 2));
+        status.ImageScalingSize = new Size(LogicalToDeviceUnits((int)(16 * settings.TextZoom)), LogicalToDeviceUnits((int)(16 * settings.TextZoom)));
         ShowStatus();
-        _largerItem.Enabled = _settings.TextZoom < AppSettings.LargestZoom;
-        _smallerItem.Enabled = _settings.TextZoom > AppSettings.SmallestZoom;
+        largerItem.Enabled = settings.TextZoom < AppSettings.LargestZoom;
+        smallerItem.Enabled = settings.TextZoom > AppSettings.SmallestZoom;
         body?.Dispose();
         group?.Dispose();
         bar?.Dispose();
@@ -517,21 +517,21 @@ public sealed partial class MainForm : Form {
     /// <summary>Gives every part of the window its colours: at start, and when the user turns a Windows contrast theme on or off.</summary>
     private void ApplyTheme() {
         DarkTheme.ApplyToWindow(this);
-        _menu.Renderer = _status.Renderer = DarkTheme.CreateRenderer();
-        foreach (var strip in new ToolStrip[] { _menu, _status }) {
+        menu.Renderer = status.Renderer = DarkTheme.CreateRenderer();
+        foreach (var strip in new ToolStrip[] { menu, status }) {
             strip.BackColor = DarkTheme.Surface;
             strip.ForeColor = DarkTheme.Text;
         }
-        foreach (ToolStripMenuItem top in _menu.Items) {
+        foreach (ToolStripMenuItem top in menu.Items) {
             top.DropDown.BackColor = DarkTheme.Surface;
             top.DropDown.ForeColor = DarkTheme.Text;
             // No command has a picture; only the View menu has a tick.
-            if (top.DropDown is ToolStripDropDownMenu drop) (drop.ShowImageMargin, drop.ShowCheckMargin) = (false, top.DropDownItems.Contains(_technicalItem));
+            if (top.DropDown is ToolStripDropDownMenu drop) (drop.ShowImageMargin, drop.ShowCheckMargin) = (false, top.DropDownItems.Contains(technicalItem));
         }
-        _technicalItem.Checked = _settings.ShowTechnical;
-        _tree.BackColor = _split.BackColor = _split.Panel1.BackColor = _split.Panel2.BackColor = DarkTheme.Background;
-        _tree.ForeColor = DarkTheme.Text;
-        _page.Rebuild();
+        technicalItem.Checked = settings.ShowTechnical;
+        tree.BackColor = split.BackColor = split.Panel1.BackColor = split.Panel2.BackColor = DarkTheme.Background;
+        tree.ForeColor = DarkTheme.Text;
+        page.Rebuild();
         ShowStatus();
         Invalidate(true);
     }
@@ -547,16 +547,16 @@ public sealed partial class MainForm : Form {
 
     /// <summary>Tells what a command did: to a screen reader, and on the line under the table or the setting.</summary>
     private void Tell(string text) {
-        _page.Say(text);
+        page.Say(text);
         Announce(text);
     }
 
     /// <summary>The line down the middle of the divider, which is wide enough to grab.</summary>
     private void PaintDivider(object? sender, PaintEventArgs e) {
-        if (_split.Panel1Collapsed) return;
+        if (split.Panel1Collapsed) return;
         using var pen = new Pen(DarkTheme.ControlBorder);
-        var x = _split.SplitterRectangle.Left + _split.SplitterRectangle.Width / 2;
-        e.Graphics.DrawLine(pen, x, 0, x, _split.Height);
+        var x = split.SplitterRectangle.Left + split.SplitterRectangle.Width / 2;
+        e.Graphics.DrawLine(pen, x, 0, x, split.Height);
     }
 
     /// <summary>
@@ -566,20 +566,20 @@ public sealed partial class MainForm : Form {
     private void DrawNode(object? sender, DrawTreeNodeEventArgs e) {
         if (e.Node is not { } node || e.Bounds.IsEmpty) return;
         var selected = (e.State & TreeNodeStates.Selected) != 0;
-        var row = new Rectangle(0, e.Bounds.Top, _tree.ClientSize.Width, e.Bounds.Height);
+        var row = new Rectangle(0, e.Bounds.Top, tree.ClientSize.Width, e.Bounds.Height);
         var bar = LogicalToDeviceUnits(4);
         using (var back = new SolidBrush(selected ? DarkTheme.Selection : DarkTheme.Background)) e.Graphics.FillRectangle(back, row);
         if (selected) {
             using var accent = new SolidBrush(DarkTheme.HighContrast ? DarkTheme.SelectionText : DarkTheme.Accent);
             e.Graphics.FillRectangle(accent, 0, row.Top, bar, row.Height);
-            if (_tree.Focused) {
+            if (tree.Focused) {
                 using var pen = new Pen(DarkTheme.SelectionText);
                 e.Graphics.DrawRectangle(pen, bar + 1, row.Top + 1, row.Width - bar - 3, row.Height - 3);
             }
         }
         // Group names in bold, so that they read as headings of what is under them.
-        var font = node.Tag is ParamCategory ? _groupFont ?? _tree.Font : _tree.Font;
-        var left = bar + LogicalToDeviceUnits(10) + node.Level * _tree.Indent;
+        var font = node.Tag is ParamCategory ? groupFont ?? tree.Font : tree.Font;
+        var left = bar + LogicalToDeviceUnits(10) + node.Level * tree.Indent;
         var text = new Rectangle(left, row.Top, Math.Max(row.Width - left - bar, 1), row.Height);
         TextRenderer.DrawText(e.Graphics, node.Text, font, text, selected ? DarkTheme.SelectionText : DarkTheme.Text,
             TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);

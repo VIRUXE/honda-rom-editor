@@ -10,8 +10,8 @@ namespace HRE.App;
 /// is understood too.
 /// </summary>
 public sealed class SettingBox : NumericUpDown {
-    private readonly bool _ready;
-    private bool _loading;
+    private readonly bool ready;
+    private bool loading;
 
     public SettingBox(RomDocument document, ParamDef def) {
         Document = document;
@@ -23,7 +23,7 @@ public sealed class SettingBox : NumericUpDown {
         Increment = Exact(ValueEdit.Step(def));
         (Minimum, Maximum) = (Exact(min), Exact(max));
         TextAlign = HorizontalAlignment.Right;
-        _ready = true;
+        ready = true;
         Reload();
         document.Changed += Reload;
     }
@@ -87,7 +87,7 @@ public sealed class SettingBox : NumericUpDown {
     /// <summary>Takes what stands in the field as the value: on Enter, and when the field is left.</summary>
     protected override void ValidateEditText() {
         // The field of the base class is filled while it is being made, before there is a setting to speak of.
-        if (!_ready) return;
+        if (!ready) return;
         var typed = Text;
         UserEdit = false;
         // An emptied field is a change of mind, not a value.
@@ -97,7 +97,7 @@ public sealed class SettingBox : NumericUpDown {
 
     /// <summary>Writes the value into the field.</summary>
     protected override void UpdateEditText() {
-        if (!_ready) return;
+        if (!ready) return;
         if (UserEdit) {
             ValidateEditText();
             return;
@@ -123,14 +123,14 @@ public sealed class SettingBox : NumericUpDown {
 
     /// <summary>Takes in the document as it is now: after a change, an undo or a redo.</summary>
     private void Reload() {
-        if (_loading) return;
-        _loading = true;
+        if (loading) return;
+        loading = true;
         var value = Exact(ValueEdit.Value(Document.Image, Def));
         // A ROM may hold a value outside what its description allows; it is shown as it is.
         (Minimum, Maximum) = (Math.Min(Minimum, value), Math.Max(Maximum, value));
         UserEdit = false;
         Value = value;
         UpdateEditText();
-        _loading = false;
+        loading = false;
     }
 }
