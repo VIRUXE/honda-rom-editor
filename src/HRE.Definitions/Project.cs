@@ -89,7 +89,7 @@ public sealed class Project {
         var flags = ConfigInc.Parse(ReadOptional(System.IO.Path.Combine(root, manifest.Config)));
         foreach (var f in manifest.Features) flags.TryAdd(f.Key, f.Default);
         var definitionsPath = System.IO.Path.Combine(root, manifest.Definitions);
-        var definitions = Parsed(definitionsPath, Read(definitionsPath), HRE.Definitions.Definitions.Parse);
+        var definitions = Parsed(definitionsPath, Read(definitionsPath), ParamDefinitions.Parse);
         var overlayPath = System.IO.Path.Combine(root, manifest.Overlay);
         var overlay = Parsed(overlayPath, ReadOptional(overlayPath), OverlayOps.Parse);
         return new Project(root, manifest, flags, definitions, overlay);

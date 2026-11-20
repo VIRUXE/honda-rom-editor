@@ -34,7 +34,7 @@ public sealed record ParamSpec {
 public sealed record DefinitionsFile(IReadOnlyList<ParamSpec> Params);
 
 /// <summary>Parameter definitions bound to assembler symbols (<c>definitions.toml</c>).</summary>
-public static class Definitions {
+public static class ParamDefinitions {
     public static DefinitionsFile Parse(string text) {
         var specs = new List<ParamSpec>();
         foreach (var t in TomlReader.Tables(TomlReader.ParseRoot(text), "param")) {
