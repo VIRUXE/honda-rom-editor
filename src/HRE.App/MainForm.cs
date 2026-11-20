@@ -7,7 +7,11 @@ using Microsoft.Win32;
 namespace HRE.App;
 
 /// <summary>The main window: menus, the list of tables and settings, the page that describes what is selected, the status bar.</summary>
-public sealed class MainForm : Form {
+/// <remarks>
+/// The controls are laid out in <c>MainForm.Designer.cs</c>, which the Visual Studio designer
+/// edits; what depends on the settings, the theme or the screen is applied here at run time.
+/// </remarks>
+public sealed partial class MainForm : Form {
     private const string AppName = "Honda ROM Editor";
     private const string GettingStartedUrl = "https://github.com/VIRUXE/honda-rom-editor/wiki/Application";
     private const string ReportUrl = "https://github.com/VIRUXE/honda-rom-editor/issues";
@@ -22,38 +26,6 @@ public sealed class MainForm : Form {
     private readonly IReadOnlyList<ProjectException> _packErrors;
     private readonly AppSettings _settings;
 
-    private readonly MenuStrip _menu = new() { AccessibleName = "Menu", Padding = new Padding(4, 2, 0, 2), AllowClickThrough = true };
-    private readonly StatusStrip _status = new() { AccessibleName = "Status", SizingGrip = false, ShowItemToolTips = true };
-    private readonly SplitContainer _split = new() { Dock = DockStyle.Fill, FixedPanel = FixedPanel.Panel1, TabStop = true, AccessibleName = "Divider between the list and the details" };
-    private readonly PageView _page = new() { Dock = DockStyle.Fill };
-
-    private readonly TreeView _tree = new() {
-        Dock = DockStyle.Fill,
-        AccessibleName = "Tables and settings",
-        BorderStyle = BorderStyle.None,
-        HideSelection = false,
-        FullRowSelect = true,
-        ShowLines = false,
-        ShowPlusMinus = false,
-        ShowRootLines = false,
-        ShowNodeToolTips = true,
-        DrawMode = TreeViewDrawMode.OwnerDrawText,
-    };
-
-    private readonly ToolStripStatusLabel _statusFile = new() { Spring = true, TextAlign = ContentAlignment.MiddleLeft };
-    private readonly ToolStripStatusLabel _statusChanges = new() { Padding = new Padding(14, 0, 0, 0), Text = "Changes not saved", ToolTipText = "Save them with File > Save (Ctrl+S)", Available = false };
-    private readonly ToolStripStatusLabel _statusKind = new() { Padding = new Padding(14, 0, 0, 0), ToolTipText = "The kind of ROM this file was recognised as" };
-    private readonly ToolStripStatusLabel _statusChecksum = new() { Padding = new Padding(14, 0, 0, 0), ImageAlign = ContentAlignment.MiddleLeft, TextImageRelation = TextImageRelation.ImageBeforeText };
-    private readonly ToolStripMenuItem _recentMenu = new("&Recent files");
-    private readonly ToolStripMenuItem _closeItem;
-    private readonly ToolStripMenuItem _saveItem;
-    private readonly ToolStripMenuItem _saveAsItem;
-    private readonly ToolStripMenuItem _undoItem;
-    private readonly ToolStripMenuItem _redoItem;
-    private readonly ToolStripMenuItem _technicalItem;
-    private readonly ToolStripMenuItem _largerItem;
-    private readonly ToolStripMenuItem _smallerItem;
-
     private IReadOnlyList<PageBlock>? _problem;
     private Font? _bodyFont;
     private Font? _groupFont;
@@ -64,72 +36,19 @@ public sealed class MainForm : Form {
         _packErrors = packErrors;
         _settings = settings;
 
-        SuspendLayout();
-        AutoScaleDimensions = new SizeF(96f, 96f);
-        AutoScaleMode = AutoScaleMode.Dpi;
-        Text = AppName;
-        MinimumSize = new Size(560, 380);
-        AllowDrop = true;
-
         AskAboutChanges = AskInDialog;
-        _closeItem = Item("&Close", Keys.Control | Keys.W, "Close the file that is open", () => CloseRom());
-        _saveItem = Item("&Save", Keys.Control | Keys.S, "Save the changes to the file, with the checksum corrected", () => Save());
-        _saveAsItem = Item("Save &as...", Keys.Control | Keys.Shift | Keys.S, "Save the ROM as another file, and go on working in that one", () => SaveAs());
-        _undoItem = Item("&Undo", Keys.Control | Keys.Z, "Take back the last change", Undo);
-        _redoItem = Item("&Redo", Keys.Control | Keys.Y, "Make the change again that was taken back", Redo);
-        _technicalItem = Item("&Technical details", Keys.Control | Keys.T, "Show or hide addresses, hashes and other details of how things are stored", ToggleTechnical);
-        _largerItem = Item("&Larger text", Keys.Control | Keys.Oemplus, "Make the text of the window larger", () => SetZoom(_settings.TextZoom + ZoomStep));
-        _largerItem.ShortcutKeyDisplayString = "Ctrl++";
-        _smallerItem = Item("&Smaller text", Keys.Control | Keys.OemMinus, "Make the text of the window smaller", () => SetZoom(_settings.TextZoom - ZoomStep));
-        _smallerItem.ShortcutKeyDisplayString = "Ctrl+-";
-        var normalItem = Item("&Normal text size", Keys.Control | Keys.D0, "Bring the text back to its normal size", () => SetZoom(1.0));
-        normalItem.ShortcutKeyDisplayString = "Ctrl+0";
-        Describe(_recentMenu, "Open a file you opened lately");
-
-        _menu.Items.Add(TopMenu("&File",
-            Item("&Open...", Keys.Control | Keys.O, "Choose a ROM file to open", ChooseRom),
-            _recentMenu,
-            _closeItem,
-            new ToolStripSeparator(),
-            _saveItem,
-            _saveAsItem,
-            new ToolStripSeparator(),
-            Item("E&xit", Keys.Alt | Keys.F4, "Close the program", Close)));
-        _menu.Items.Add(TopMenu("&Edit", _undoItem, _redoItem));
-        _menu.Items.Add(TopMenu("&View", _technicalItem, new ToolStripSeparator(), _largerItem, _smallerItem, normalItem));
-        _menu.Items.Add(TopMenu("&Help",
-            Item("&Getting started", Keys.F1, "Read how the window works, in the browser", () => OpenLink(GettingStartedUrl)),
-            Item("&Which ROMs can be opened", Keys.None, "Read which ROMs this version can open, in the browser", () => OpenLink(Details.SupportedRomsUrl)),
-            Item("&Report a problem", Keys.None, "Tell the makers what went wrong, in the browser", () => OpenLink(ReportUrl)),
-            new ToolStripSeparator(),
-            Item($"&About {AppName}", Keys.None, "See the version of the program", ShowAbout)));
-        _status.Items.AddRange([_statusFile, _statusChanges, _statusKind, _statusChecksum]);
-
-        _split.Panel1.Padding = new Padding(0, 8, 0, 0);
-        _split.Panel1.Controls.Add(_tree);
-        _split.Panel2.Controls.Add(_page);
-        _split.Paint += PaintDivider;
-
-        // Docking goes by z-order: the control added last takes its edge first.
-        Controls.Add(_split);
-        Controls.Add(_status);
-        Controls.Add(_menu);
-        MainMenuStrip = _menu;
-        ResumeLayout();
+        InitializeComponent();
+        // The name is the program's: the designer holds it too, in the title and the About command.
+        Text = AppName;
+        _aboutItem.Text = $"&About {AppName}";
+        foreach (ToolStripMenuItem top in _menu.Items) {
+            foreach (var item in top.DropDownItems.OfType<ToolStripMenuItem>()) Describe(item);
+        }
 
         PlaceWindow();
         _split.SplitterWidth = LogicalToDeviceUnits(7);
         _split.Panel1MinSize = LogicalToDeviceUnits(160);
 
-        _tree.AfterSelect += (_, _) => {
-            _problem = null;
-            ShowPage();
-        };
-        // The groups stay open: there is nothing to gain from hiding a handful of rows.
-        _tree.BeforeCollapse += (_, e) => e.Cancel = true;
-        _tree.DrawNode += DrawNode;
-        _tree.GotFocus += (_, _) => _tree.Invalidate();
-        _tree.LostFocus += (_, _) => _tree.Invalidate();
         _page.ActionInvoked += RunPageAction;
         _page.TechnicalToggled += ToggleTechnical;
         _page.Announced += Announce;
@@ -323,6 +242,7 @@ public sealed class MainForm : Form {
 
     protected override void Dispose(bool disposing) {
         if (disposing) {
+            components?.Dispose();
             SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
             _bodyFont?.Dispose();
             _groupFont?.Dispose();
@@ -342,28 +262,58 @@ public sealed class MainForm : Form {
 
     private static void OpenLink(string url) => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true })?.Dispose();
 
-    private static ToolStripMenuItem TopMenu(string text, params ToolStripItem[] items) {
-        var menu = new ToolStripMenuItem(text);
-        menu.DropDownItems.AddRange(items);
-        return menu;
-    }
-
-    private ToolStripMenuItem Item(string text, Keys shortcut, string description, Action run) {
-        var item = new ToolStripMenuItem(text);
-        if (shortcut != Keys.None) item.ShortcutKeys = shortcut;
-        item.Click += (_, _) => run();
-        Describe(item, description);
-        return item;
-    }
-
-    /// <summary>Says what a command does: to screen readers, and in the status bar while the command is highlighted.</summary>
-    private void Describe(ToolStripMenuItem item, string description) {
-        item.AccessibleDescription = description;
+    /// <summary>
+    /// Says what a command does: to screen readers, and in the status bar while the command is
+    /// highlighted. The description is the item's accessible description, which the designer holds.
+    /// </summary>
+    private void Describe(ToolStripMenuItem item, string? description = null) {
+        if (description is not null) item.AccessibleDescription = description;
         item.SelectedChanged += (_, _) => {
-            if (item.Selected) _statusFile.Text = description;
+            if (item.Selected) _statusFile.Text = item.AccessibleDescription;
             else ShowStatus();
         };
     }
+
+    private void OpenItem_Click(object? sender, EventArgs e) => ChooseRom();
+
+    private void CloseItem_Click(object? sender, EventArgs e) => CloseRom();
+
+    private void SaveItem_Click(object? sender, EventArgs e) => Save();
+
+    private void SaveAsItem_Click(object? sender, EventArgs e) => SaveAs();
+
+    private void ExitItem_Click(object? sender, EventArgs e) => Close();
+
+    private void UndoItem_Click(object? sender, EventArgs e) => Undo();
+
+    private void RedoItem_Click(object? sender, EventArgs e) => Redo();
+
+    private void TechnicalItem_Click(object? sender, EventArgs e) => ToggleTechnical();
+
+    private void LargerItem_Click(object? sender, EventArgs e) => SetZoom(_settings.TextZoom + ZoomStep);
+
+    private void SmallerItem_Click(object? sender, EventArgs e) => SetZoom(_settings.TextZoom - ZoomStep);
+
+    private void NormalItem_Click(object? sender, EventArgs e) => SetZoom(1.0);
+
+    private void GettingStartedItem_Click(object? sender, EventArgs e) => OpenLink(GettingStartedUrl);
+
+    private void SupportedRomsItem_Click(object? sender, EventArgs e) => OpenLink(Details.SupportedRomsUrl);
+
+    private void ReportItem_Click(object? sender, EventArgs e) => OpenLink(ReportUrl);
+
+    private void AboutItem_Click(object? sender, EventArgs e) => ShowAbout();
+
+    private void Tree_AfterSelect(object? sender, TreeViewEventArgs e) {
+        _problem = null;
+        ShowPage();
+    }
+
+    /// <summary>The groups stay open: there is nothing to gain from hiding a handful of rows.</summary>
+    private void Tree_BeforeCollapse(object? sender, TreeViewCancelEventArgs e) => e.Cancel = true;
+
+    /// <summary>The selected row is outlined only while the list has the focus.</summary>
+    private void Tree_FocusChanged(object? sender, EventArgs e) => _tree.Invalidate();
 
     /// <summary>Starts where the window was last time, when that place is still on a screen; otherwise centred, no larger than the screen.</summary>
     private void PlaceWindow() {

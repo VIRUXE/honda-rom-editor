@@ -13,46 +13,35 @@ public enum ChangesAnswer {
 /// The one question the program asks: whether to save the changes before a ROM is closed.
 /// Losing them cannot be undone, so Save is the button Enter presses, and Esc goes back.
 /// </summary>
-public sealed class ChangesForm : Form {
+/// <remarks>
+/// The controls are laid out in <c>ChangesForm.Designer.cs</c>, which the Visual Studio designer
+/// edits; the file name, the fonts, the sizes that follow them and the colours are applied here.
+/// </remarks>
+public sealed partial class ChangesForm : Form {
     private readonly Font _headingFont;
 
     public ChangesForm(string fileName, Font textFont) {
+        InitializeComponent();
         SuspendLayout();
-        AutoScaleDimensions = new SizeF(96f, 96f);
-        AutoScaleMode = AutoScaleMode.Dpi;
         Font = textFont;
-        Text = "Changes not saved";
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        StartPosition = FormStartPosition.CenterParent;
-        MaximizeBox = MinimizeBox = ShowInTaskbar = false;
-        AutoSize = true;
-        AutoSizeMode = AutoSizeMode.GrowAndShrink;
-        Padding = new Padding(20);
         DarkTheme.ApplyToWindow(this);
         _headingFont = new Font(Font.FontFamily, Font.SizeInPoints * 1.3f, FontStyle.Bold);
 
         // Everything sizes itself to its text, so larger text and other scalings cannot clip it.
         var wrap = new Size(Font.Height * 24, 0);
-        var heading = new Label { Text = $"Save the changes to {fileName}?", Font = _headingFont, AutoSize = true, MaximumSize = wrap, UseMnemonic = false, Margin = new Padding(0, 0, 3, 0) };
-        var body = new Label { Text = "If you do not save them, they are lost.", AutoSize = true, MaximumSize = wrap, Margin = new Padding(3, 10, 3, 3) };
-        AccessibleDescription = $"{heading.Text} {body.Text}";
+        _heading.Text = $"Save the changes to {fileName}?";
+        _heading.Font = _headingFont;
+        _heading.MaximumSize = _body.MaximumSize = wrap;
+        AccessibleDescription = $"{_heading.Text} {_body.Text}";
 
-        var save = Choice("&Save", ChangesAnswer.Save, "Saves the changes, then goes on");
-        var discard = Choice("&Don't save", ChangesAnswer.Discard, "Goes on without saving: the changes are lost");
-        var cancel = Choice("Cancel", ChangesAnswer.Cancel, "Goes back to the ROM, with its changes");
+        var padding = new Padding(Font.Height / 2, Font.Height / 8, Font.Height / 2, Font.Height / 8);
+        _save.Padding = _discard.Padding = _cancel.Padding = padding;
         if (!DarkTheme.HighContrast) {
             // The main button in the accent of the program, not of Windows; dark text on it reads best.
-            (save.BackColor, save.ForeColor) = (DarkTheme.Accent, Color.Black);
-            (discard.BackColor, discard.ForeColor) = (cancel.BackColor, cancel.ForeColor) = (DarkTheme.Card, DarkTheme.Text);
+            (_save.BackColor, _save.ForeColor) = (DarkTheme.Accent, Color.Black);
+            (_discard.BackColor, _discard.ForeColor) = (_cancel.BackColor, _cancel.ForeColor) = (DarkTheme.Card, DarkTheme.Text);
         }
-        var buttons = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(0, Font.Height, 0, 0) };
-        buttons.Controls.AddRange([save, discard, cancel]);
-
-        var column = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Dock = DockStyle.Fill };
-        column.Controls.AddRange([heading, body, buttons]);
-        Controls.Add(column);
-        AcceptButton = save;
-        CancelButton = cancel;
+        _buttons.Margin = new Padding(0, Font.Height, 0, 0);
         ResumeLayout();
     }
 
@@ -60,16 +49,21 @@ public sealed class ChangesForm : Form {
     public ChangesAnswer Answer { get; private set; } = ChangesAnswer.Cancel;
 
     protected override void Dispose(bool disposing) {
-        if (disposing) _headingFont.Dispose();
+        if (disposing) {
+            components?.Dispose();
+            _headingFont.Dispose();
+        }
         base.Dispose(disposing);
     }
 
-    private ThemedButton Choice(string text, ChangesAnswer answer, string description) {
-        var button = new ThemedButton { Text = text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, AccessibleDescription = description, Padding = new Padding(Font.Height / 2, Font.Height / 8, Font.Height / 2, Font.Height / 8) };
-        button.Click += (_, _) => {
-            Answer = answer;
-            DialogResult = DialogResult.OK;
-        };
-        return button;
+    private void Save_Click(object? sender, EventArgs e) => Choose(ChangesAnswer.Save);
+
+    private void Discard_Click(object? sender, EventArgs e) => Choose(ChangesAnswer.Discard);
+
+    private void Cancel_Click(object? sender, EventArgs e) => Choose(ChangesAnswer.Cancel);
+
+    private void Choose(ChangesAnswer answer) {
+        Answer = answer;
+        DialogResult = DialogResult.OK;
     }
 }
