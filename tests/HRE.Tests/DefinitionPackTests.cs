@@ -10,6 +10,9 @@ public class DefinitionPackTests {
 
     internal static DefinitionPack Mini() => DefinitionPacks.Parse(MiniText());
 
+    /// <summary>An image to resolve packs against whose parameters do not depend on the ROM.</summary>
+    internal static RomImage Blank { get; } = new(new byte[0x8000]);
+
     /// <summary>The ROM the mini pack describes.</summary>
     internal static RomImage MiniRom() {
         var data = new byte[0x8000];
@@ -42,10 +45,10 @@ public class DefinitionPackTests {
         Assert.Equal(0x8000, pack.Fingerprints[0].Size);
         Assert.Null(pack.Fingerprints[1].Size);
         Assert.Equal([0xFF, 0xF0], pack.Fingerprints[1].Bytes[0].Mask);
-        Assert.Empty(pack.Problems);
-        Assert.Equal(3, pack.Defs.Count);
+        Assert.Empty(pack.Resolve(Blank).Problems);
+        Assert.Equal(3, pack.Resolve(Blank).Defs.Count);
 
-        var fuel = pack.Defs[0];
+        var fuel = pack.Resolve(Blank).Defs[0];
         Assert.Null(fuel.Symbol);
         Assert.Equal(0x100, fuel.Offset);
         Assert.Equal(CellFormat.U8, fuel.Cell);
@@ -54,19 +57,19 @@ public class DefinitionPackTests {
         Assert.Equal(new ColumnMultiplier(0x120, MultiplierKind.Exponent), fuel.Multiplier);
         Assert.Equal([new ByteRange(0x100, 0x106), new ByteRange(0x0F0, 0x0F2), new ByteRange(0x110, 0x116), new ByteRange(0x120, 0x123)], fuel.Spans());
 
-        var wide = pack.Defs[1];
+        var wide = pack.Resolve(Blank).Defs[1];
         Assert.Equal(CellFormat.U16LittleEndian, wide.Cell);
         Assert.Equal(8, wide.Length);
         Assert.True(wide.RowAxis.IsFixed);
 
-        Assert.Equal(new ParamKind.Word(3000, 11000), pack.Defs[2].Kind);
-        Assert.True(pack.Defs[2].LittleEndian);
+        Assert.Equal(new ParamKind.Word(3000, 11000), pack.Resolve(Blank).Defs[2].Kind);
+        Assert.True(pack.Resolve(Blank).Defs[2].LittleEndian);
     }
 
     [Fact]
     public void ReadsDeltaAxesMultipliersAndWideCells() {
         var (pack, rom) = (Mini(), MiniRom());
-        var fuel = pack.Defs[0];
+        var fuel = pack.Resolve(Blank).Defs[0];
         Assert.Equal([10f, 30f], ParamAccess.AxisValues(rom, fuel.RowAxis, 2));
         Assert.Equal([30f, 60f, 90f], ParamAccess.AxisValues(rom, fuel.ColAxis, 3));
         Assert.Equal(6, ParamAccess.Cell(rom, fuel, 1, 2));
@@ -75,28 +78,28 @@ public class DefinitionPackTests {
         // Halfway between columns 1 and 2 of row 0: (2 * 2 + 3 * 4) / 2.
         Assert.Equal(8f, TableMath.Lookup(rom, fuel, 10, 75));
 
-        var wide = pack.Defs[1];
+        var wide = pack.Resolve(Blank).Defs[1];
         Assert.Equal(0x0010, ParamAccess.Cell(rom, wide, 0, 0));
         Assert.Equal(0x1234, ParamAccess.Cell(rom, wide, 1, 1));
         Assert.Equal(0x0100 * 0.5f, ParamAccess.CellDisplay(rom, wide, 1, 0));
         Assert.Equal(1f, ParamAccess.ColumnFactor(rom, wide, 1));
 
-        Assert.Equal(9000, ParamAccess.Word(rom, pack.Defs[2]));
+        Assert.Equal(9000, ParamAccess.Word(rom, pack.Resolve(Blank).Defs[2]));
     }
 
     [Fact]
     public void WritesWideCellsAndLittleEndianWords() {
         var (pack, rom) = (Mini(), MiniRom());
-        var wide = pack.Defs[1];
-        var edited = rom.With(ParamAccess.CellWrites(wide, 0, 1, 0xABCD)).With(ParamAccess.WordWrites(pack.Defs[2], 7000));
+        var wide = pack.Resolve(Blank).Defs[1];
+        var edited = rom.With(ParamAccess.CellWrites(wide, 0, 1, 0xABCD)).With(ParamAccess.WordWrites(pack.Resolve(Blank).Defs[2], 7000));
         Assert.Equal(0xCD, edited[0x202]);
         Assert.Equal(0xAB, edited[0x203]);
         Assert.Equal(0xABCD, ParamAccess.Cell(edited, wide, 0, 1));
         Assert.Equal(0x0010, ParamAccess.Cell(edited, wide, 0, 0));
-        Assert.Equal(7000, ParamAccess.Word(edited, pack.Defs[2]));
+        Assert.Equal(7000, ParamAccess.Word(edited, pack.Resolve(Blank).Defs[2]));
         // Values are clamped to what a cell holds.
         Assert.Equal(0xFFFF, ParamAccess.Cell(rom.With(ParamAccess.CellWrites(wide, 0, 0, 70000)), wide, 0, 0));
-        Assert.Equal(255, ParamAccess.Cell(rom.With(ParamAccess.CellWrites(pack.Defs[0], 0, 0, 300)), pack.Defs[0], 0, 0));
+        Assert.Equal(255, ParamAccess.Cell(rom.With(ParamAccess.CellWrites(pack.Resolve(Blank).Defs[0], 0, 0, 300)), pack.Resolve(Blank).Defs[0], 0, 0));
     }
 
     /// <summary>Moving one delta-encoded breakpoint leaves the others where they were.</summary>
@@ -209,7 +212,7 @@ public class DefinitionPackTests {
         Assert.Equal(ChecksumSpec.WholeImage(0x8000), pack.Checksum);
         Assert.Equal(new ChecksumSpec(ChecksumKind.Sum8, 0x7FFF, 0, 0x8000), pack.Checksum);
         Assert.Null(pack.Datalog);
-        Assert.Empty(pack.Defs);
+        Assert.Empty(pack.Resolve(Blank).Defs);
 
         // The correction byte defaults to the end of the range; CROME-style ROMs keep it elsewhere.
         Assert.Equal(new ChecksumSpec(ChecksumKind.Sum8, 0x3FFF, 0, 0x4000), DefinitionPacks.Parse(Minimal("[checksum]\nend = 0x4000\n")).Checksum);
@@ -239,7 +242,6 @@ public class DefinitionPackTests {
     [InlineData("[[param]]\ncategory='a'\nname='t'\naddress=1\nkind='table'\nrows=2\ncols=2\nrow_axis={label='r',address=9,encoding='values'}\ncol_axis={label='c',values=[1,2]}\n", null)]
     [InlineData("[[param]]\ncategory='a'\nname='t'\naddress=1\nkind='table'\nrows=2\ncols=2\nrow_axis={label='r',values=[1,2],encoding='words'}\ncol_axis={label='c',values=[1,2]}\n", null)]
     [InlineData("[[param]]\ncategory='a'\nname='t'\naddress=1\nkind='table'\nrows=2\ncols=2\nrow_axis={label='r',values=[1,2]}\ncol_axis={label='c',values=[1,2]}\nmultiplier={address=9,kind='cubic'}\n", null)]
-    [InlineData("[[param]]\ncategory='a'\nname='t'\naddress=1\nkind='table'\nrows=2\ncols=2\nrow_axis={label='r',values=[1,2]}\ncol_axis={label='c',values=[1,2]}\nmultiplier={kind='linear'}\n", null)]
     public void MalformedPacksAreRejected(string extra, string? fingerprint) {
         var text = fingerprint is null ? Minimal(extra) : Minimal(extra, fingerprint);
         Assert.Throws<HreFormatException>(() => DefinitionPacks.Parse(text));
@@ -263,7 +265,7 @@ public class DefinitionPackTests {
             + "[[param]]\ncategory='a'\nname='Delta past'\naddress=0x10\nkind='table'\nrows=2\ncols=2\nrow_axis={label='r',address=0x7FFF,encoding='delta-bytes'}\ncol_axis={label='c',values=[1,2]}\n\n"
             + "[[param]]\ncategory='a'\nname='Byte word'\naddress=0x10\nkind='word'\ncell='u8'\n\n"
             + "[[param]]\ncategory='a'\nname='Word mult'\naddress=0x10\nkind='word'\nmultiplier={address=0x20}\n"));
-        Assert.Equal(["Ok"], pack.Defs.Select(d => d.Name));
+        Assert.Equal(["Ok"], pack.Resolve(Blank).Defs.Select(d => d.Name));
         Assert.Equal([
             "Past: data is outside the 0x8000-byte ROM",
             "Wide past: data is outside the 0x8000-byte ROM",
@@ -271,7 +273,7 @@ public class DefinitionPackTests {
             "Delta past: row_axis is outside the 0x8000-byte ROM",
             "Byte word: a word is u16be or u16le, not u8",
             "Word mult: only a table has a multiplier",
-        ], pack.Problems);
+        ], pack.Resolve(Blank).Problems);
         Assert.Equal(7, pack.Params.Count);
     }
 

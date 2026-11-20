@@ -129,8 +129,8 @@ public class ByteAxisTests {
         var pack = DefinitionPacks.Parse(Table(
             "{ label = 'RPM', address = 0x10, encoding = 'log-bytes', scale = 500 }",
             "{ label = 'MAP kPa', address = 0x20, encoding = 'bytes', scale = 0.5, bias = 10.0 }"));
-        Assert.Empty(pack.Problems);
-        var def = Assert.Single(pack.Defs);
+        Assert.Empty(pack.Resolve(DefinitionPackTests.Blank).Problems);
+        var def = Assert.Single(pack.Resolve(DefinitionPackTests.Blank).Defs);
         Assert.Equal(Axis.At("RPM", 0x10, null, AxisEncoding.LogBytes) with { Scale = 500f }, def.RowAxis);
         Assert.Equal(Axis.At("MAP kPa", 0x20, null, AxisEncoding.Bytes) with { Scale = 0.5f, Bias = 10f }, def.ColAxis);
         Assert.Equal([new ByteRange(0x100, 0x104), new ByteRange(0x10, 0x12), new ByteRange(0x20, 0x22)], def.Spans());
@@ -141,7 +141,7 @@ public class ByteAxisTests {
         var pack = DefinitionPacks.Parse(Table(
             "{ label = 'r', address = 0x10, scale = 2 }",
             "{ label = 'c', address = 0x20, encoding = 'delta-bytes', scale = 4, bias = 1 }"));
-        var def = Assert.Single(pack.Defs);
+        var def = Assert.Single(pack.Resolve(DefinitionPackTests.Blank).Defs);
         var data = new byte[0x8000];
         new byte[] { 0x01, 0x00, 0x02, 0x00 }.CopyTo(data, 0x10);    // words 256, 512
         new byte[] { 3, 5 }.CopyTo(data, 0x20);                       // 3, 8
@@ -164,7 +164,7 @@ public class ByteAxisTests {
     [Fact]
     public void AByteAxisPastTheRomIsReportedAndLeftOut() {
         var pack = DefinitionPacks.Parse(Table("{ label = 'r', address = 0x7FFF, encoding = 'bytes' }"));
-        Assert.Empty(pack.Defs);
-        Assert.Equal(["n: row_axis is outside the 0x8000-byte ROM"], pack.Problems);
+        Assert.Empty(pack.Resolve(DefinitionPackTests.Blank).Defs);
+        Assert.Equal(["n: row_axis is outside the 0x8000-byte ROM"], pack.Resolve(DefinitionPackTests.Blank).Problems);
     }
 }

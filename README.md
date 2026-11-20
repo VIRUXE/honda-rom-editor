@@ -43,8 +43,9 @@ on every build.
 <td width="50%" valign="top">
 
 ### Existing `.bin` files, safely
-Definition packs identify a ROM by fingerprint and describe its tables as data. Patch recipes
-state the bytes they expect to replace — and refuse to run when they don't match.
+Definition packs identify a ROM by fingerprint and describe its tables as data, reading from the
+ROM itself where a tuning program has enlarged or moved them. Patch recipes state the bytes they
+expect to replace — and refuse to run when they don't match.
 
 </td>
 </tr>
@@ -88,7 +89,7 @@ no engine, bench harness or emulator needed.
 |:-:|---|---|
 | <img alt="Done" src="https://img.shields.io/badge/-done-3cbe50?style=flat-square"> | **M1** Core and formats | ROM image, checksum, parameter model, undo/redo, project file formats |
 | <img alt="Done" src="https://img.shields.io/badge/-done-3cbe50?style=flat-square"> | **M2** Build | Source project → ROM image through the assembler, overlay applied, checksum fixed |
-| <img alt="In progress" src="https://img.shields.io/badge/-in%20progress-d29922?style=flat-square"> | **M3** Definition packs | Open existing `.bin` files; verified patch recipes. The pack format, patch recipes and packs for the factory P28, P30 and P72 firmware, the CROME Gold base and eCtune's base are in; tunes with enlarged boost maps are next |
+| <img alt="In progress" src="https://img.shields.io/badge/-in%20progress-d29922?style=flat-square"> | **M3** Definition packs | Open existing `.bin` files; verified patch recipes. The pack format, patch recipes and packs for the factory P28, P30 and P72 firmware, ROMs with CROME's boost add-ons, Uberdata's boost bases, the CROME Gold base and eCtune's base are in; pressure units on the MAP axis of the last two are next |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M4** App shell | Black-themed window, table grid, 3D surface, undo/redo, save |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M5** Virtual ECU serial port | Emulated ECU serving its real serial routines over TCP |
 | <img alt="Planned" src="https://img.shields.io/badge/-planned-30363d?style=flat-square"> | **M6** Legacy datalog drivers | eCtune-compatible, CROME QD2 / QD3-compatible |

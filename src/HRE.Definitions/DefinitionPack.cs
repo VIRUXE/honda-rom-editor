@@ -46,11 +46,35 @@ public sealed record DefinitionPack {
     /// <summary>The verified changes that can be made to the ROM, each reversible.</summary>
     public IReadOnlyList<PatchRecipe> Patches { get; init; } = [];
 
-    /// <summary>The parameters that resolved inside the ROM.</summary>
-    public IReadOnlyList<ParamDef> Defs { get; init; } = [];
+    /// <summary>
+    /// The parameters of an image of this ROM, and why the others were left out. A pack may say
+    /// that the ROM keeps an address or a size somewhere, so the same pack can resolve
+    /// differently on two images. A parameter is left out when it does not fit in the ROM, and
+    /// when it covers the checksum byte or a byte a fingerprint compares: editing it would
+    /// break the checksum or make the pack stop recognising the ROM.
+    /// </summary>
+    public (IReadOnlyList<ParamDef> Defs, IReadOnlyList<string> Problems) Resolve(RomImage image) {
+        var (resolved, reported) = ParamDefinitions.Resolve(Params, null, RomSize, image);
+        var (defs, problems) = (new List<ParamDef>(), reported.ToList());
+        foreach (var def in resolved) {
+            if (Reserved(def) is { } reason) problems.Add($"{def.Name}: {reason}");
+            else defs.Add(def);
+        }
+        return (defs, problems);
+    }
 
-    /// <summary>Why the other parameters were left out.</summary>
-    public IReadOnlyList<string> Problems { get; init; } = [];
+    /// <summary>Why the parameter may not be where it is; null when it may.</summary>
+    private string? Reserved(ParamDef def) {
+        foreach (var span in def.Spans()) {
+            if (Checksum.Kind != ChecksumKind.None && span.Contains(Checksum.Location)) return $"covers the checksum byte at 0x{Checksum.Location:x}";
+            foreach (var match in Fingerprints.SelectMany(f => f.Bytes)) {
+                for (var at = Math.Max(span.Start, match.Address); at < Math.Min(span.End, match.Address + match.Value.Count); at++) {
+                    if (match.Mask is not { } masks || masks[at - match.Address] != 0) return $"covers the byte at 0x{at:x}, which a fingerprint compares";
+                }
+            }
+        }
+        return null;
+    }
 }
 
 /// <summary>Matching ROM images against fingerprints.</summary>
@@ -100,7 +124,6 @@ public static class DefinitionPacks {
         }
         var fingerprints = TomlReader.Tables(root, "fingerprint").Select(ParseFingerprint).ToList();
         if (fingerprints.Count == 0) throw new HreFormatException("missing `[[fingerprint]]`: a pack must say which ROM it describes");
-        var (defs, problems) = ParamDefinitions.Resolve(specs, null, romSize);
         var checksum = ParseChecksum(root, romSize);
         var patches = new List<PatchRecipe>();
         foreach (var t in TomlReader.Tables(root, "patch")) {
@@ -123,8 +146,6 @@ public static class DefinitionPacks {
             Datalog = ParseDatalog(root),
             Params = specs,
             Patches = patches,
-            Defs = defs,
-            Problems = problems,
         };
     }
 

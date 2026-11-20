@@ -105,20 +105,39 @@ When several packs match, a hash match ranks first, then the fingerprint that co
 
 ## Parameters
 
-Each `[[param]]` is a table or a 16-bit word at an absolute `address`.
+Each `[[param]]` is a table or a 16-bit word at an `address`.
 
 | Key | Applies to | Default | Meaning |
 |---|---|---|---|
 | `category`, `name` | all | required | Where the parameter appears in the tree |
-| `address` | all | required | Absolute address of the data |
+| `address` | all | required | Address of the data: a number, or where the ROM keeps it (see below) |
 | `kind` | all | required | `table` or `word` |
-| `rows`, `cols` | table | required | At least 2 x 2; cells are stored row by row |
+| `rows`, `cols` | table | required | At least 2 x 2; cells are stored row by row. Each is a number, or where the ROM keeps it |
 | `cell` | all | `u8` (table), `u16be` (word) | `u8`, `u16be` or `u16le`. A word is `u16be` or `u16le` |
 | `min`, `max` | word | `0`, `65535` | Allowed range; equal values make the word read-only |
 | `unit`, `scale`, `bias` | all | `""`, `1`, `0` | Displayed value = raw x scale + bias |
 | `vtec` | table | | Which cam state the ECU reads this table in |
 | `row_axis`, `col_axis` | table | required | See below |
 | `multiplier` | table | | See below |
+
+### Values the ROM keeps
+
+A tuning program can give a ROM larger maps and put them somewhere else. The firmware then holds the new column count and the new addresses in its own instructions, and a pack can read them from there instead of stating them. Wherever a pack gives an address, `rows` or `cols`, it may give `{ at = ... }` instead:
+
+| Key | Default | Meaning |
+|---|---|---|
+| `at` | required | The address the ROM keeps the value at. May itself be `{ at = ... }` |
+| `cell` | `u16le` for an address, `u8` for `rows` and `cols` | How the value is stored: `u8`, `u16le` or `u16be` |
+| `bias` | `0` | Added to what is read |
+
+```toml
+address = { at = 0x1257 }       # the address the firmware loads at 0x1256
+cols = { at = 0x1235 }          # the column count it sets at 0x1234
+```
+
+A pack that reads a value this way leaves the bytes it reads out of its fingerprint with a `mask`, and compares the instruction around them. One pack then describes every size and position of the maps, and still refuses a ROM whose instructions are not the ones it knows.
+
+Such a parameter is resolved for each image. It is left out, with the reason, when the address lies outside the image or what is read cannot be a table.
 
 ### Axes
 
@@ -139,13 +158,20 @@ row_axis = { label = "RPM", address = 0x700A, encoding = "log-bytes", scale = 50
 col_axis = { label = "MAP kPa", address = 0x7000, encoding = "bytes", scale = 0.36105, bias = 11.43 }
 ```
 
+An axis stored as `bytes` at an address may give `ends` instead of knowing its scale: where the ROM keeps, in two cells one after the other, what stored 0 and stored 255 stand for. `ends` is `{ at, cell, bias }` as above, with `u16le` cells by default. The stored value is put on the line between the two ends, and `scale` and `bias` then apply. Tuning programs write the range of the MAP sensor into the ROM this way, so the same pack shows the right pressures whichever sensor a tune was made for:
+
+```toml
+# The sensor range, in mbar, is in the four bytes before the axis, each word 32768 above its value.
+col_axis = { label = "MAP kPa", address = { at = 0x0A2C }, encoding = "bytes", ends = { at = { at = 0x0A2C, bias = -4 }, bias = -32768 }, scale = 0.1 }
+```
+
 Breakpoints always increase. Editing one breakpoint of a delta-encoded axis leaves the others where they are: the step that follows is adjusted to match, and the new value is limited so that both steps still fit one byte. A single-byte breakpoint stays below 256, which only the last one can hold.
 
 Where an operating point falls between two breakpoints is measured in stored units, because that is how the ECU interpolates. On a `log-bytes` axis this differs from interpolating the displayed values whenever two neighbouring breakpoints lie in different octaves.
 
 ### Column multipliers
 
-`multiplier = { address, kind }` names one byte per column. Each cell of a column is scaled by its byte before `scale` and `bias` apply:
+`multiplier = { address, kind }` names one byte per column. Without an `address` the multipliers are the row after the last row of cells, which is where the table lookup of the OBD1 ECUs reads them. Each cell of a column is scaled by its byte before `scale` and `bias` apply:
 
 | `kind` | Factor |
 |---|---|
@@ -222,8 +248,8 @@ Keep steps clear of the bytes a parameter covers as well: once that table is edi
 
 ## Validation
 
-A file that cannot be understood (bad syntax, a missing or contradictory key, an unknown name) is rejected with the reason; a reason inside a patch names the patch and the step. So is a file that defines something twice: a key or a table given twice, or `[[...]]` tables written after an inline list of the same name. The reason gives the line. A parameter that cannot exist in the ROM, such as a span reaching past `rom_size`, is reported and left out; the rest of the pack still loads.
+A file that cannot be understood (bad syntax, a missing or contradictory key, an unknown name) is rejected with the reason; a reason inside a patch names the patch and the step. So is a file that defines something twice: a key or a table given twice, or `[[...]]` tables written after an inline list of the same name. The reason gives the line. A parameter that cannot exist in the ROM, such as a span reaching past `rom_size`, is reported and left out; the rest of the pack still loads. So is a parameter that covers the checksum byte or a byte a `bytes` fingerprint compares: editing it would break the checksum, or make the pack stop recognising the ROM.
 
 ## Source projects
 
-`definitions.toml` in a source project accepts the same optional keys (`platform`, `cell`, axis `encoding`, `scale` and `bias`, `multiplier`), with a `symbol` wherever a pack has an `address`. Files written before these keys existed stay valid.
+`definitions.toml` in a source project accepts the same optional keys (`platform`, `cell`, axis `encoding`, `scale` and `bias`, `multiplier`), with a `symbol` wherever a pack has an `address`. Values read from the ROM belong to packs: a source project knows where its tables are. Files written before these keys existed stay valid.

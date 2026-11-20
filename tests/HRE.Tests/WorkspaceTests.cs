@@ -42,7 +42,7 @@ public class WorkspaceTests {
         Assert.Equal(7, p.Definitions.Params.Count);
         Assert.Equal(4, p.Definitions.Params.Count(d => d.Kind == "table"));
         Assert.All(p.Definitions.Params.Where(d => d.Kind == "table"), d => {
-            Assert.Equal((20, 10), (d.Rows, d.Cols));
+            Assert.Equal<(RomValue, RomValue)>((20, 10), (d.Rows, d.Cols));
             Assert.IsType<AxisSpec.Fixed>(d.RowAxis);
             Assert.IsType<AxisSpec.Fixed>(d.ColAxis);
         });

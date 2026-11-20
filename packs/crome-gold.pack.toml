@@ -49,7 +49,7 @@ scale = 0.25
 vtec = false
 row_axis = { label = "RPM", address = 0x6E72, encoding = "log-bytes", scale = 500 }
 col_axis = { label = "MAP code", address = 0x6E5A, encoding = "bytes" }
-multiplier = { address = 0x707A }
+multiplier = { kind = "linear" }
 
 [[param]]
 category = "Fuel"
@@ -62,7 +62,7 @@ scale = 0.25
 vtec = true
 row_axis = { label = "RPM", address = 0x6E86, encoding = "bytes", scale = 43.0836 }
 col_axis = { label = "MAP code", address = 0x6E5A, encoding = "bytes" }
-multiplier = { address = 0x7272 }
+multiplier = { kind = "linear" }
 
 [[param]]
 category = "Ignition"

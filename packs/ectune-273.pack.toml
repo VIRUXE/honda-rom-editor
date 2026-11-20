@@ -49,7 +49,7 @@ scale = 0.25
 vtec = false
 row_axis = { label = "RPM", address = 0x6E71, encoding = "log-bytes", scale = 500 }
 col_axis = { label = "MAP code", address = 0x6E59, encoding = "bytes" }
-multiplier = { address = 0x708D }
+multiplier = { kind = "linear" }
 
 [[param]]
 category = "Fuel"
@@ -62,7 +62,7 @@ scale = 0.25
 vtec = true
 row_axis = { label = "RPM", address = 0x6E85, encoding = "bytes", scale = 43.0836 }
 col_axis = { label = "MAP code", address = 0x6E59, encoding = "bytes" }
-multiplier = { address = 0x7285 }
+multiplier = { kind = "linear" }
 
 [[param]]
 category = "Ignition"
@@ -103,7 +103,7 @@ scale = 0.25
 vtec = false
 row_axis = { label = "RPM", address = 0x6E2F, encoding = "log-bytes", scale = 500 }
 col_axis = { label = "MAP code", address = 0x6E17, encoding = "bytes" }
-multiplier = { address = 0x783F }
+multiplier = { kind = "linear" }
 
 [[param]]
 category = "Fuel"
@@ -116,7 +116,7 @@ scale = 0.25
 vtec = true
 row_axis = { label = "RPM", address = 0x6E43, encoding = "bytes", scale = 43.0836 }
 col_axis = { label = "MAP code", address = 0x6E17, encoding = "bytes" }
-multiplier = { address = 0x7A37 }
+multiplier = { kind = "linear" }
 
 [[param]]
 category = "Ignition"
