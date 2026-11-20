@@ -156,7 +156,29 @@ public class PackCorpusTests {
         Assert.InRange(ParamAccess.CellDisplay(image, ignHigh, 19, 9), 20f, 40f);
         // A point on the map: where 3200 rpm and 70 kPa fall, and the fuel value read there.
         Assert.Equal((12.49f, 4.57f), Round2(TableMath.TablePos(image, fuelLow, 3200f, 70f)!.Value));
-        Assert.InRange(TableMath.Lookup(image, fuelLow, 3200f, 70f)!.Value, 300f, 1300f);
+        Assert.InRange(TableMath.Lookup(image, fuelLow, 3200f, 70f)!.Value, 75f, 325f);
+    }
+
+    /// <summary>
+    /// The P28 304 as CROME shows the template it ships: low-cam fuel from 4 to 600, a high-cam
+    /// rpm axis whose last stored byte but one is 8028 rpm. CROME reads the closing zero of an
+    /// axis as 255 and shows 7936 and 8979 rpm there; the ECU, and this editor, count it as 256.
+    /// </summary>
+    [WorkspaceFact(Editors)]
+    public void TheP28304ReadsAsCromeShowsIt() {
+        var pack = ShippedPackTests.Pack("obd1-p28");
+        var image = RomImage.Load(CorpusPath("editors/crome/P28 USDM Civic D16Z (304).NEW"));
+        var (fuelLow, fuelHigh) = (pack.Defs[0], pack.Defs[1]);
+        var fuel = (from row in Enumerable.Range(0, 20) from col in Enumerable.Range(0, 10) select ParamAccess.CellDisplay(image, fuelLow, row, col)).ToList();
+        Assert.Equal((4f, 600f), (fuel.Min(), fuel.Max()));
+
+        var low = ParamAccess.AxisValues(image, fuelLow.RowAxis, 20);
+        var high = ParamAccess.AxisValues(image, fuelHigh.RowAxis, 20);
+        Assert.Equal((500f, 8000f), (low[0], low[^1]));
+        Assert.Equal((0f, 8028f, 9014f), (high[0], MathF.Round(high[^2]), MathF.Round(high[^1])));
+        // Within CROME's rounding.
+        Assert.InRange(fuelLow.RowAxis.Display(255f), 7935f, 7939f);
+        Assert.Equal(8979f, MathF.Round(fuelHigh.RowAxis.Display(255f)));
     }
 
     private static (float, float) Round2((float Row, float Col) pos) => (MathF.Round(pos.Row, 2), MathF.Round(pos.Col, 2));

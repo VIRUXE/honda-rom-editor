@@ -112,7 +112,8 @@ public class ShippedPackTests {
                     var table = (ParamKind.Table)fuel.Kind;
                     // The lookup reads the multipliers from the row after the last.
                     Assert.Equal(new ColumnMultiplier(fuel.Offset + table.Rows * table.Cols, MultiplierKind.Linear), fuel.Multiplier);
-                    Assert.Equal((1f, 0f), (fuel.Scale, fuel.Bias));
+                    // Shown as a quarter of cell x multiplier, as the tuning programs for these ROMs show it.
+                    Assert.Equal((0.25f, 0f), (fuel.Scale, fuel.Bias));
                 });
                 Assert.All(new[] { ignLow, ignHigh }, ign => {
                     Assert.Null(ign.Multiplier);

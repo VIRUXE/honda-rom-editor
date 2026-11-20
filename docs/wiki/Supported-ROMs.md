@@ -28,7 +28,7 @@ The four main maps of each set: fuel and ignition, low cam and high cam.
 
 | | Stored | Shown as |
 |---|---|---|
-| Fuel cell | one byte, with one multiplier byte per column after the last row | cell x multiplier |
+| Fuel cell | one byte, with one multiplier byte per column after the last row | cell x multiplier / 4: the ECU uses cell x multiplier, and a quarter of it is the figure CROME and eCtune show |
 | Ignition cell | one byte | degrees before top dead centre: byte x 0.25 - 6 |
 | Low-cam RPM axis | one byte per row, doubling every 64 steps from 500 rpm | rpm |
 | High-cam RPM axis | one byte per row, linear | rpm: byte x 35.21 in the factory firmware, x 43.08 in the CROME Gold base and in eCt-273 |
@@ -53,5 +53,6 @@ Against a corpus of 193 images: factory ROMs, tunes made with several programs, 
 - Every parameter lies inside its image, and every axis read from an image is ordered and spans engine speeds and pressures an engine can see.
 - Every image whose bytes sum to zero passes its pack's checksum, and correcting one that does not changes only the checksum byte.
 - The P28 with ROM number 230 reads the same through its pack as through its source project: the same map addresses, the same axes in rpm and kPa, the factory column multipliers, 16.5 degrees at idle.
+- The P28 with ROM number 304 reads as CROME shows the template it ships: low-cam fuel from 4 to 600, and the same rpm axes, except that CROME reads the closing zero of an axis as 255 where the ECU counts 256.
 
 The corpus is not part of the repository; see [[Testing without hardware]].

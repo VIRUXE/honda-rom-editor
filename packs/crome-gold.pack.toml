@@ -32,7 +32,8 @@ kind = "sum8"
 location = 0x003B
 
 # Each map holds 24 columns; the columns a tune does not use repeat the last breakpoint.
-# Each fuel map is followed by one multiplier per column: the ECU uses cell x multiplier.
+# Each fuel map is followed by one multiplier per column: the ECU uses cell x multiplier. Fuel
+# is shown as a quarter of that, the figure CROME and eCtune show.
 # RPM rows: the low-cam axis doubles every 64 steps from 500 rpm; the high-cam axis is linear.
 # MAP columns are shown as the stored code: the pressure a code stands for depends on the MAP
 # sensor set in the ROM.
@@ -44,6 +45,7 @@ address = 0x6E9A
 kind = "table"
 rows = 20
 cols = 24
+scale = 0.25
 vtec = false
 row_axis = { label = "RPM", address = 0x6E72, encoding = "log-bytes", scale = 500 }
 col_axis = { label = "MAP code", address = 0x6E5A, encoding = "bytes" }
@@ -56,6 +58,7 @@ address = 0x7092
 kind = "table"
 rows = 20
 cols = 24
+scale = 0.25
 vtec = true
 row_axis = { label = "RPM", address = 0x6E86, encoding = "bytes", scale = 43.0836 }
 col_axis = { label = "MAP code", address = 0x6E5A, encoding = "bytes" }

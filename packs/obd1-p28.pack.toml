@@ -53,7 +53,8 @@ bytes = [
 kind = "sum8"
 location = 0x7FFF
 
-# Each fuel map is followed by one multiplier per column: the ECU uses cell x multiplier.
+# Each fuel map is followed by one multiplier per column: the ECU uses cell x multiplier. Fuel
+# is shown as a quarter of that, the figure CROME and eCtune show.
 # RPM rows: the low-cam axis doubles every 64 steps from 500 rpm; the high-cam axis is linear.
 # MAP columns: kPa for the factory sensor.
 
@@ -64,6 +65,7 @@ address = 0x7050
 kind = "table"
 rows = 20
 cols = 10
+scale = 0.25
 vtec = false
 row_axis = { label = "RPM", address = 0x7014, encoding = "log-bytes", scale = 500 }
 col_axis = { label = "MAP kPa", address = 0x7000, encoding = "bytes", scale = 0.36105, bias = 11.43 }
@@ -76,6 +78,7 @@ address = 0x7122
 kind = "table"
 rows = 20
 cols = 10
+scale = 0.25
 vtec = true
 row_axis = { label = "RPM", address = 0x7028, encoding = "bytes", scale = 35.2126 }
 col_axis = { label = "MAP kPa", address = 0x7000, encoding = "bytes", scale = 0.36105, bias = 11.43 }
