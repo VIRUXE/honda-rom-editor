@@ -208,6 +208,7 @@ public class DefinitionPackTests {
     [InlineData("", "[[fingerprint]]\nbytes = [{ address = 0, value = [] }]\n")]
     [InlineData("", "[[fingerprint]]\nbytes = [{ address = 0, value = [1, 2], mask = [255] }]\n")]
     [InlineData("", "[[fingerprint]]\nbytes = [{ address = 0, value = [256] }]\n")]
+    [InlineData("", "[[fingerprint]]\nbytes = [{ address = 0, value = [1] }]\n[[fingerprint.bytes]]\naddress = 5\nvalue = [2]\n")]   // tables after an inline list
     [InlineData("platform = 'obd3'", null)]
     [InlineData("[checksum]\nkind = 'crc'\n", null)]
     [InlineData("[checksum]\nstart = 0x100\nend = 0x100\n", null)]

@@ -149,7 +149,7 @@ public class DefinitionsTests {
     [InlineData("[[param]]\ncategory='a'\nname='w'\nsymbol='w'\nkind='word'\nkind='table'\n")]
     [InlineData("[[param]]\ncategory='a'\nname='w'\nsymbol='w'\nkind='word'\nrow_axis={label='r',label='s',symbol='x'}\n")]
     public void AKeyDefinedTwiceIsRejected(string text) {
-        Assert.Contains("cannot be redefined", Assert.Throws<HreFormatException>(() => ParamDefinitions.Parse(text)).Message);
+        Assert.Contains("is already defined", Assert.Throws<HreFormatException>(() => ParamDefinitions.Parse(text)).Message);
     }
 
     [Fact]

@@ -170,7 +170,7 @@ steps = [
 ]
 ```
 
-Only the inline list is read. `[[patch.steps]]` tables are refused, and so is any key in a step other than the three above: either way a file that looks complete could otherwise load with part of a patch missing or misread.
+Only the inline list is read; `[[patch.steps]]` tables are refused. So is any key in a step other than the three above, because ignoring one could change what the step writes.
 
 ### Probing
 
@@ -209,7 +209,7 @@ Keep steps clear of the bytes a parameter covers as well: once that table is edi
 
 ## Validation
 
-A file that cannot be understood (bad syntax, a missing or contradictory key, an unknown name, a key or table given twice) is rejected with the reason; a reason inside a patch names the patch and the step. A parameter that cannot exist in the ROM, such as a span reaching past `rom_size`, is reported and left out; the rest of the pack still loads.
+A file that cannot be understood (bad syntax, a missing or contradictory key, an unknown name) is rejected with the reason; a reason inside a patch names the patch and the step. So is a file that defines something twice: a key or a table given twice, or `[[...]]` tables written after an inline list of the same name. The reason gives the line. A parameter that cannot exist in the ROM, such as a span reaching past `rom_size`, is reported and left out; the rest of the pack still loads.
 
 ## Source projects
 

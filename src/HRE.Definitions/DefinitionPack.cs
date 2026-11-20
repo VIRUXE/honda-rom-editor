@@ -212,13 +212,14 @@ public static class DefinitionPacks {
     /// changes what a fingerprint compares. Errors name the patch and the step.
     /// </summary>
     private static PatchRecipe ParsePatch(TomlTable t, int romSize, ChecksumSpec checksum, IReadOnlyList<Fingerprint> fingerprints) {
-        var id = TomlReader.OptionalString(t, "id");
-        if (string.IsNullOrEmpty(id)) throw new HreFormatException("every `[[patch]]` needs an `id`");
+        // Said in terms of the patch: a bare "`id` must be a string" would read as the pack's own id.
+        if (t.TryGetValue("id", out var given) && given is not string) throw new HreFormatException("the `id` of a `[[patch]]` must be a string");
+        if (given is not string id || string.IsNullOrWhiteSpace(id)) throw new HreFormatException("every `[[patch]]` needs an `id`");
         try {
             var name = TomlReader.String(t, "name");
+            if (string.IsNullOrWhiteSpace(name)) throw new HreFormatException("`name` must not be empty");
             if (!t.TryGetValue("steps", out var list)) throw new HreFormatException("missing `steps`");
-            // Only the inline spelling is read: `[[patch.steps]]` tables written after an inline
-            // list would take its place without a word, and half a patch would load.
+            // Steps have one spelling, the inline list.
             if (list is not TomlArray array || array.Any(item => item is not TomlTable)) {
                 throw new HreFormatException("`steps` must be an inline list: steps = [{ address = ..., old = [...], new = [...] }]");
             }

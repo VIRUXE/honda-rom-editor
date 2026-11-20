@@ -13,9 +13,8 @@ internal static class TomlReader {
     public static TomlTable ParseRoot(string text) {
         try {
             var root = TomlSerializer.Deserialize<TomlTable>(text, (TomlSerializerOptions?)null) ?? new TomlTable();
-            // The reader above keeps the last of two definitions of a key or a table without a
-            // word; the validating parser refuses them.
-            SyntaxParser.ParseStrict(text, null, validate: true);
+            // The reader above keeps the last of two definitions of a key or a table without a word.
+            TomlRules.Check(SyntaxParser.ParseStrict(text, null, validate: false));
             return root;
         } catch (TomlException e) {
             throw new HreFormatException(e.Message, e);
