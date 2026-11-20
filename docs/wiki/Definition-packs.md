@@ -1,6 +1,6 @@
 # Definition packs
 
-A definition pack describes an existing ROM image so it can be opened without source: how to recognise it, where its parameters are, where its checksum is and which datalog protocol it speaks. A pack is one TOML file named `<something>.pack.toml`; packs are plain data and can be shared.
+A definition pack describes an existing ROM image so it can be opened without source: how to recognise it, where its parameters are, where its checksum is, which datalog protocol it speaks and which patches can be applied to it. A pack is one TOML file named `<something>.pack.toml`; packs are plain data and can be shared.
 
 See [[ROM approach]] for where packs fit next to source projects.
 
@@ -52,6 +52,21 @@ cell = "u16le"
 min = 3000
 max = 11000
 unit = "rpm"
+
+[[patch]]
+id = "fast-serial"
+name = "Fast serial routine"
+doc = "Answers a memory address with the byte stored there."
+
+[[patch.step]]
+address = 0x0500
+old = [0x00, 0x00, 0x00]
+new = [0x03, 0x00, 0x7F]
+
+[[patch.step]]
+address = 0x7F00
+old = [0xFF, 0xFF, 0xFF, 0xFF]
+new = [0x21, 0x10, 0x03, 0xFF]
 ```
 
 ## Top-level keys
@@ -130,9 +145,52 @@ Breakpoints always increase. Editing one breakpoint of a delta-encoded axis leav
 | `linear` (default) | the byte |
 | `exponent` | two to the power of the byte |
 
+## Patches
+
+A pack may list `[[patch]]` entries: named changes to the ROM that can be applied and taken out again. A patch is a recipe of steps, and every step states the bytes it expects to find as well as the bytes it writes, so a patch is never written over something it was not made for.
+
+| Key | Required | Meaning |
+|---|---|---|
+| `id` | yes | Short stable identifier, unique within the pack |
+| `name` | yes | Name shown to the user |
+| `doc` | no | What the patch does |
+| `step` | yes | One or more steps: `[[patch.step]]` tables as in the example, or an inline list `step = [{ address = ..., old = [...], new = [...] }]` |
+
+Each step:
+
+| Key | Meaning |
+|---|---|
+| `address` | Absolute address of the first byte |
+| `old` | The bytes expected there before the patch |
+| `new` | The bytes that replace them; as many as `old` |
+
+### Probing
+
+Before anything is written the image is probed. A patch is in exactly one of three states:
+
+| State | The image holds | What happens |
+|---|---|---|
+| Not applied | every step's `old` bytes | It can be applied |
+| Applied | every step's `new` bytes | It can be reverted |
+| Conflict | anything else: a byte that is neither, only some of the steps in place, or an image too short for a step | It is refused, with the address of the first unexpected byte; the image is left as it was |
+
+- Applying a patch and then reverting it gives back the image byte for byte.
+- A byte that is the same in `old` and `new` is still compared. A step can repeat bytes unchanged, or change none at all, to pin down code the patch relies on.
+- Two patches that write the same bytes exclude each other: while one is applied the other is a conflict, until the first is reverted.
+- The checksum is corrected after a patch as after any other edit.
+
+### What a pack may not contain
+
+The pack is rejected when a patch:
+
+- has steps that overlap, or a step that reaches past `rom_size`;
+- has a step covering the checksum's correction byte, which changes with every edit and so never holds an expected value (this does not apply with `kind = "none"`);
+- changes nothing, because `new` equals `old` in every step;
+- repeats the `id` of another patch in the pack.
+
 ## Validation
 
-A file that cannot be understood (bad syntax, a missing or contradictory key, an unknown name) is rejected with the reason. A parameter that cannot exist in the ROM, such as a span reaching past `rom_size`, is reported and left out; the rest of the pack still loads.
+A file that cannot be understood (bad syntax, a missing or contradictory key, an unknown name) is rejected with the reason; a reason inside a patch names the patch. A parameter that cannot exist in the ROM, such as a span reaching past `rom_size`, is reported and left out; the rest of the pack still loads.
 
 ## Source projects
 

@@ -43,6 +43,9 @@ public sealed record DefinitionPack {
     public DatalogSpec? Datalog { get; init; }
     public IReadOnlyList<ParamSpec> Params { get; init; } = [];
 
+    /// <summary>The verified changes that can be made to the ROM, each reversible.</summary>
+    public IReadOnlyList<PatchRecipe> Patches { get; init; } = [];
+
     /// <summary>The parameters that resolved inside the ROM.</summary>
     public IReadOnlyList<ParamDef> Defs { get; init; } = [];
 
@@ -93,15 +96,23 @@ public static class DefinitionPacks {
         var fingerprints = TomlReader.Tables(root, "fingerprint").Select(ParseFingerprint).ToList();
         if (fingerprints.Count == 0) throw new HreFormatException("missing `[[fingerprint]]`: a pack must say which ROM it describes");
         var (defs, problems) = ParamDefinitions.Resolve(specs, null, romSize);
+        var checksum = ParseChecksum(root, romSize);
+        var patches = new List<PatchRecipe>();
+        foreach (var t in TomlReader.Tables(root, "patch")) {
+            var patch = ParsePatch(t, romSize, checksum);
+            if (patches.Any(p => p.Id == patch.Id)) throw new HreFormatException($"another patch already has id `{patch.Id}`");
+            patches.Add(patch);
+        }
         return new DefinitionPack {
             Id = TomlReader.String(root, "id"),
             Name = TomlReader.String(root, "name"),
             Platform = ParamDefinitions.ParsePlatform(root) ?? RomPlatform.Obd1Oki66207,
             RomSize = romSize,
             Fingerprints = fingerprints,
-            Checksum = ParseChecksum(root, romSize),
+            Checksum = checksum,
             Datalog = ParseDatalog(root),
             Params = specs,
+            Patches = patches,
             Defs = defs,
             Problems = problems,
         };
@@ -187,6 +198,49 @@ public static class DefinitionPacks {
         var end = (int)TomlReader.Integer(t, "end", start + 1, romSize, romSize);
         var location = (int)TomlReader.Integer(t, "location", start, end - 1, end - 1);
         return new ChecksumSpec(kind, location, start, end);
+    }
+
+    /// <summary>
+    /// <c>[[patch]]</c>: <c>id</c>, <c>name</c>, an optional <c>doc</c> and one or more
+    /// <c>[[patch.step]]</c>, each an <c>address</c>, the <c>old</c> bytes expected there and the
+    /// <c>new</c> bytes that replace them. A recipe that could not be probed unambiguously is
+    /// rejected: steps that overlap, reach past the ROM or cover the checksum byte, and a recipe
+    /// that changes nothing. Errors name the patch.
+    /// </summary>
+    private static PatchRecipe ParsePatch(TomlTable t, int romSize, ChecksumSpec checksum) {
+        var id = TomlReader.OptionalString(t, "id");
+        if (string.IsNullOrEmpty(id)) throw new HreFormatException("every `[[patch]]` needs an `id`");
+        try {
+            var name = TomlReader.String(t, "name");
+            var steps = TomlReader.Tables(t, "step").Select(ParseStep).ToList();
+            if (steps.Count == 0) throw new HreFormatException("missing `[[patch.step]]`: a patch needs at least one step");
+            foreach (var step in steps) {
+                var end = (long)step.Address + step.Old.Count;
+                if (end > romSize) throw new HreFormatException($"the step at 0x{step.Address:x} reaches past the 0x{romSize:x}-byte ROM");
+                // The correction byte follows every edit, so its value can never be an expected one.
+                if (checksum.Kind != ChecksumKind.None && checksum.Location >= step.Address && checksum.Location < end) {
+                    throw new HreFormatException($"the step at 0x{step.Address:x} covers the checksum byte at 0x{checksum.Location:x}, which changes with every edit");
+                }
+            }
+            var ordered = steps.OrderBy(s => s.Address).ToList();
+            for (var i = 1; i < ordered.Count; i++) {
+                var (before, after) = (ordered[i - 1], ordered[i]);
+                if (before.Address + before.Old.Count > after.Address) throw new HreFormatException($"the steps at 0x{before.Address:x} and 0x{after.Address:x} overlap");
+            }
+            // Such a recipe would probe as applied and as not applied at once.
+            if (steps.All(s => s.Old.SequenceEqual(s.New))) throw new HreFormatException("`new` equals `old` in every step: the patch changes nothing");
+            return new PatchRecipe(id, name, TomlReader.String(t, "doc", ""), steps);
+        } catch (HreFormatException e) {
+            throw new HreFormatException($"patch `{id}`: {e.Message}", e);
+        }
+    }
+
+    private static PatchStep ParseStep(TomlTable t) {
+        var old = TomlReader.OptionalBytes(t, "old") ?? throw new HreFormatException("missing `old`");
+        var replacement = TomlReader.OptionalBytes(t, "new") ?? throw new HreFormatException("missing `new`");
+        if (old.Length == 0) throw new HreFormatException("`old` must not be empty");
+        if (replacement.Length != old.Length) throw new HreFormatException($"`old` has {old.Length} bytes, `new` has {replacement.Length}");
+        return new PatchStep((int)TomlReader.Integer(t, "address", 0, int.MaxValue), old, replacement);
     }
 
     private static DatalogSpec? ParseDatalog(TomlTable root) {

@@ -8,10 +8,10 @@ public class DefinitionPackTests {
 
     private static string MiniText() => File.ReadAllText(Path.Combine(PackDir, "mini.pack.toml"));
 
-    private static DefinitionPack Mini() => DefinitionPacks.Parse(MiniText());
+    internal static DefinitionPack Mini() => DefinitionPacks.Parse(MiniText());
 
     /// <summary>The ROM the mini pack describes.</summary>
-    private static RomImage MiniRom() {
+    internal static RomImage MiniRom() {
         var data = new byte[0x8000];
         Array.Fill(data, (byte)0xFF, 0x4000, 0x4000);
         data[0x23] = 0x96;
@@ -26,7 +26,7 @@ public class DefinitionPackTests {
         return new RomImage(data);
     }
 
-    private static string Minimal(string extra = "", string fingerprint = "[[fingerprint]]\nbytes = [{ address = 0, value = [1] }]\n") =>
+    internal static string Minimal(string extra = "", string fingerprint = "[[fingerprint]]\nbytes = [{ address = 0, value = [1] }]\n") =>
         $"id = 'x'\nname = 'X'\n{extra}\n{fingerprint}";
 
     [Fact]
